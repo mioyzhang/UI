@@ -1,17 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-
-"""
-ZetCode PyQt5 tutorial
-
-In this example, we create a simple
-window in PyQt5.
-
-author: Jan Bodnar
-website: zetcode.com
-Last edited: August 2017
-"""
-
 import sys
 import socket
 
@@ -123,7 +111,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         ip_address, port = address if address is not None else (None, None)
         if date.get('type') == 'connect':
             if self.address_in_nodes(ip_address):
-                pass
+                new_node = Node(ip_address=ip_address)
+                self.add_node(new_node)
             else:
                 pass
         pass
