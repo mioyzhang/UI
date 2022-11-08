@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="icon">
+    <file>icon/cat.png</file>
+    <file>icon/节点.png</file>
+    <file>icon/消息队列.png</file>
+    <file>icon/战场环境.png</file>
+  </qresource>
+  <qresource prefix="img">
+    <file>img/战场态势.jpg</file>
+  </qresource>
+</RCC>
