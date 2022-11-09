@@ -4,11 +4,16 @@ import sys
 import socket
 
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainWindow
+from PyQt5.QtCore import QThread, pyqtSignal, QSize
+from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainWindow, QListWidgetItem
 
-from ui.mainwindow import Ui_MainWindow
-from ui.edit import Ui_Form
+# from ui.mainwindow import Ui_MainWindow
+# from ui.edit import Ui_Form
+# from wigets import NodeItem
+
+from mainwindow import Ui_MainWindow
+from edit import Ui_Form
+from widgets import NodeItem, NodeQListWidgetItem
 
 
 class Node(object):
@@ -27,14 +32,14 @@ class Node(object):
 
 class Logic(object):
     def __init__(self):
-        self.Nodes = []
+        self.nodes = []
 
     def add_node(self, node):
-        if node not in self.Nodes:
-            self.Nodes.append(node)
+        if node not in self.nodes:
+            self.nodes.append(node)
 
     def address_in_nodes(self, address):
-        return address in [i.ip_address for i in self.Nodes]
+        return address in [i.ip_address for i in self.nodes]
 
 
 class WorkThread(QThread):
@@ -80,7 +85,10 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
     main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
-        super().__init__()
+        super(MainWindow, self).__init__()
+        super(QMainWindow, self).__init__()
+        super(Ui_MainWindow, self).__init__()
+
         self.edit_widget = None
         self.setupUi(self)
 
@@ -100,6 +108,32 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         self.action_2.triggered.connect(self.show_edit_widget)
         self.pushButton_2.clicked.connect(self.show_edit_widget)
 
+        self.pushButton_3.clicked.connect(self.test)
+        self.listWidget_nodes.currentItemChanged.connect(self.display)
+    
+    def test(self):
+        new_node = Node(label='s1', ip_address='10.0.0.1')
+        self.add_node(new_node)
+        # item = QListWidgetItem() # 创建QListWidgetItem对象
+        # # item->setSizeHint(QSize(item->sizeHint().width(), 30));
+        # item.setSizeHint(QSize(item.sizeHint().width(), 43))
+        # widget = NodeItem(new_node)
+
+        # self.listWidget_nodes.addItem(item) # 添加item
+        # self.listWidget_nodes.setItemWidget(item, widget) # 为item设置widget
+
+        item = NodeQListWidgetItem(new_node)
+        # item.setSizeHint(QSize(item.sizeHint().width(), 43))
+
+        self.listWidget_nodes.addItem(item) # 添加item
+        self.listWidget_nodes.setItemWidget(item, item.widget)
+        
+        pass
+
+    def display(self, *args):
+        print(args)
+        print(args[0].node)
+
     def show_edit_widget(self):
         self.edit_widget = EditWidget()
         self.edit_widget.show()
@@ -113,6 +147,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
             if self.address_in_nodes(ip_address):
                 new_node = Node(ip_address=ip_address)
                 self.add_node(new_node)
+                item = QListWidgetItem() # 创建QListWidgetItem对象
+                item.setSizeHint(QSize(200, 50)) # 设置QListWidgetItem大小
+                # todo
+                widget = NodeItem(new_node)
+
+                self.listWidget_nodes.addItem(item) # 添加item
+                self.listWidget_nodes.setItemWidget(item, widget) # 为item设置widget
+
             else:
                 pass
         pass

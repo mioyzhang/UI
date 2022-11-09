@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>883</width>
-    <height>506</height>
+    <height>508</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,7 +46,7 @@
        <string notr="true">QWidget#page_3{image:url(:/img/img/战场态势.jpg)}</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,10,0">
@@ -60,7 +60,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QListView" name="listView_2"/>
+           <widget class="QListWidget" name="listWidget_messages"/>
           </item>
          </layout>
         </item>
@@ -85,8 +85,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>466</width>
-                 <height>256</height>
+                 <width>449</width>
+                 <height>235</height>
                 </rect>
                </property>
               </widget>
@@ -360,7 +360,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QListView" name="listView"/>
+           <widget class="QListWidget" name="listWidget_nodes"/>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -514,7 +514,7 @@
      <x>0</x>
      <y>0</y>
      <width>883</width>
-     <height>22</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

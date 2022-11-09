@@ -1,0 +1,8 @@
+
+pyuic5 -o mian.py test.ui
+
+pyrcc5 -o icon_rc.py icon.qrc
+
+
+ git config --global user.email "1667574015@qq.com"
+  git config --global user.name "mioyzhang"
