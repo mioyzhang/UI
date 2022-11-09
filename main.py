@@ -7,13 +7,9 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QThread, pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainWindow, QListWidgetItem
 
-# from ui.mainwindow import Ui_MainWindow
-# from ui.edit import Ui_Form
-# from wigets import NodeItem
-
-from mainwindow import Ui_MainWindow
-from edit import Ui_Form
-from widgets import NodeItem, NodeQListWidgetItem
+from ui.mainwindow import Ui_MainWindow
+from ui.edit import Ui_Form
+from widgets import NodeQListWidgetItem
 
 
 class Node(object):
@@ -24,10 +20,23 @@ class Node(object):
         self.ip_address = ip_address
         self.mac_address = mac_address
 
+        self.type = None
         self.status = None
+        self.last_seen = None
+        self.last_gps = None
 
     def __str__(self):
         return f'Node({self.label})'
+
+
+class Message(object):
+    def __init__(self):
+        super(Message, self).__init__()
+        self.src = None
+        self.dst = None
+        self.content = None
+        self.gps = None
+        self.time = None
 
 
 class Logic(object):
@@ -125,14 +134,18 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         item = NodeQListWidgetItem(new_node)
         # item.setSizeHint(QSize(item.sizeHint().width(), 43))
 
-        self.listWidget_nodes.addItem(item) # 添加item
+        self.listWidget_nodes.addItem(item)
         self.listWidget_nodes.setItemWidget(item, item.widget)
         
         pass
 
     def display(self, *args):
-        print(args)
-        print(args[0].node)
+        node = args[0].node
+        self.label_29.setText(node.label)
+        self.label_31.setText(node.ip_address)
+        self.label_33.setText(node.type)
+        self.label_35.setText(node.last_seen)
+        self.label_37.setText(node.last_gps)
 
     def show_edit_widget(self):
         self.edit_widget = EditWidget()
@@ -145,18 +158,14 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         ip_address, port = address if address is not None else (None, None)
         if date.get('type') == 'connect':
             if self.address_in_nodes(ip_address):
+                pass
+            else:
                 new_node = Node(ip_address=ip_address)
                 self.add_node(new_node)
-                item = QListWidgetItem() # 创建QListWidgetItem对象
-                item.setSizeHint(QSize(200, 50)) # 设置QListWidgetItem大小
-                # todo
-                widget = NodeItem(new_node)
+                item = NodeQListWidgetItem(new_node)
 
-                self.listWidget_nodes.addItem(item) # 添加item
-                self.listWidget_nodes.setItemWidget(item, widget) # 为item设置widget
-
-            else:
-                pass
+                self.listWidget_nodes.addItem(item)
+                self.listWidget_nodes.setItemWidget(item, item.widget)
         pass
 
 

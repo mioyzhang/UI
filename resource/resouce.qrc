@@ -1,6 +1,17 @@
 <RCC>
   <qresource prefix="icon">
     <file>icon/cat.png</file>
+    <file>icon/传感器.png</file>
+    <file>icon/火箭.png</file>
+    <file>icon/节点.png</file>
+    <file>icon/军事.png</file>
+    <file>icon/皮卡 (1).png</file>
+    <file>icon/皮卡.png</file>
+    <file>icon/无人机.png</file>
+    <file>icon/消息队列.png</file>
+    <file>icon/战场环境.png</file>
+    <file>icon/战斗机,作战.png</file>
+    <file>icon/cat.png</file>
     <file>icon/节点.png</file>
     <file>icon/消息队列.png</file>
     <file>icon/战场环境.png</file>
