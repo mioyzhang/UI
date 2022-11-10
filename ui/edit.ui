@@ -1,335 +1,267 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>EditForm</class>
+ <widget class="QWidget" name="EditForm">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>690</width>
-    <height>624</height>
+    <width>950</width>
+    <height>828</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="pushButton_3">
-   <property name="geometry">
-    <rect>
-     <x>300</x>
-     <y>400</y>
-     <width>80</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>取消</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit">
-   <property name="geometry">
-    <rect>
-     <x>142</x>
-     <y>208</y>
-     <width>142</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>301</y>
-     <width>411</width>
-     <height>81</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QRadioButton" name="radioButton">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>209</y>
-     <width>50</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>gps</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_4">
-   <property name="geometry">
-    <rect>
-     <x>390</x>
-     <y>400</y>
-     <width>80</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>发送</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>174</y>
-     <width>45</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>协议：</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton">
-   <property name="geometry">
-    <rect>
-     <x>295</x>
-     <y>205</y>
-     <width>80</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>定位</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>272</y>
-     <width>45</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>描述：</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_2">
-   <property name="geometry">
-    <rect>
-     <x>381</x>
-     <y>205</y>
-     <width>80</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>生成</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>61</x>
-     <y>81</y>
-     <width>75</width>
-     <height>23</height>
+     <x>200</x>
+     <y>120</y>
+     <width>54</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>目的节点：</string>
+    <string>消息类型:</string>
    </property>
   </widget>
   <widget class="QComboBox" name="comboBox">
    <property name="geometry">
     <rect>
-     <x>142</x>
-     <y>174</y>
-     <width>59</width>
-     <height>25</height>
+     <x>290</x>
+     <y>120</y>
+     <width>74</width>
+     <height>20</height>
     </rect>
    </property>
    <item>
     <property name="text">
-     <string>UDP</string>
+     <string>None</string>
     </property>
    </item>
    <item>
     <property name="text">
-     <string>TCP</string>
+     <string>探测信息</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>指令信息</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>回复信息</string>
     </property>
    </item>
   </widget>
-  <widget class="QLabel" name="label_6">
+  <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>61</x>
-     <y>21</y>
-     <width>60</width>
-     <height>23</height>
+     <x>200</x>
+     <y>80</y>
+     <width>48</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>源节点：</string>
+    <string>序列号：</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
+  <widget class="QLabel" name="label_seq">
    <property name="geometry">
     <rect>
-     <x>142</x>
-     <y>21</y>
-     <width>67</width>
-     <height>17</height>
+     <x>290</x>
+     <y>80</y>
+     <width>54</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
     <string>TextLabel</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_7">
+  <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>61</x>
-     <y>50</y>
+     <x>200</x>
+     <y>170</y>
+     <width>36</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>描述：</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEdit">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>200</y>
+     <width>391</width>
+     <height>201</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="radioButton">
+   <property name="geometry">
+    <rect>
+     <x>190</x>
+     <y>430</y>
+     <width>41</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>GPS</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>260</x>
+     <y>430</y>
+     <width>133</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_position">
+   <property name="geometry">
+    <rect>
+     <x>410</x>
+     <y>430</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>发送方式：</string>
+    <string>定位</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox_2">
+  <widget class="QPushButton" name="pushButton_generate">
    <property name="geometry">
     <rect>
-     <x>142</x>
-     <y>50</y>
-     <width>60</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <item>
-    <property name="text">
-     <string>单播</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>广播</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>组播</string>
-    </property>
-   </item>
-  </widget>
-  <widget class="QLabel" name="label_9">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>112</y>
-     <width>60</width>
+     <x>500</x>
+     <y>430</y>
+     <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>广播地址</string>
+    <string>生成</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_10">
+  <widget class="QLabel" name="label_5">
    <property name="geometry">
     <rect>
-     <x>61</x>
-     <y>143</y>
-     <width>60</width>
-     <height>23</height>
+     <x>196</x>
+     <y>490</y>
+     <width>48</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>广播地址</string>
+    <string>添加文件</string>
    </property>
   </widget>
-  <widget class="QLineEdit" name="lineEdit_2">
+  <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
-     <x>142</x>
-     <y>143</y>
-     <width>142</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit_3">
-   <property name="geometry">
-    <rect>
-     <x>142</x>
-     <y>112</y>
-     <width>142</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit_4">
-   <property name="geometry">
-    <rect>
-     <x>142</x>
-     <y>81</y>
-     <width>142</width>
-     <height>25</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_11">
-   <property name="geometry">
-    <rect>
-     <x>61</x>
-     <y>242</y>
-     <width>60</width>
-     <height>23</height>
+     <x>430</x>
+     <y>490</y>
+     <width>48</width>
+     <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>选择图像</string>
+    <string>添加图像</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton">
+  <widget class="QToolButton" name="toolButton_file">
    <property name="geometry">
     <rect>
-     <x>150</x>
-     <y>240</y>
-     <width>26</width>
-     <height>24</height>
+     <x>260</x>
+     <y>490</y>
+     <width>37</width>
+     <height>18</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="text">
     <string>...</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_12">
+  <widget class="QToolButton" name="toolButton_img">
    <property name="geometry">
     <rect>
-     <x>295</x>
-     <y>242</y>
-     <width>60</width>
-     <height>23</height>
+     <x>490</x>
+     <y>490</y>
+     <width>37</width>
+     <height>18</height>
     </rect>
    </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="text">
-    <string>选择文件</string>
+    <string>...</string>
    </property>
   </widget>
-  <widget class="QToolButton" name="toolButton_2">
+  <widget class="QPushButton" name="pushButton_cancel">
    <property name="geometry">
     <rect>
      <x>380</x>
-     <y>240</y>
-     <width>26</width>
-     <height>24</height>
+     <y>580</y>
+     <width>75</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>...</string>
+    <string>取消</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_submit">
+   <property name="geometry">
+    <rect>
+     <x>480</x>
+     <y>580</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>确定</string>
    </property>
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>pushButton_cancel</sender>
+   <signal>clicked()</signal>
+   <receiver>EditForm</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>435</x>
+     <y>593</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>275</x>
+     <y>643</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

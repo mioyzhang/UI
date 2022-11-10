@@ -98,9 +98,8 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
     main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
-        super(MainWindow, self).__init__()
-        super(QMainWindow, self).__init__()
-        super(Ui_MainWindow, self).__init__()
+        QMainWindow.__init__(self)
+        Logic.__init__(self)
 
         self.edit_widget = None
         self.setupUi(self)
@@ -127,7 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
     
     def p1_test(self):
         src = '10.0.0.3'
-        content =  'idosahgfiophdgiapohgiahgiapghi gjsigjsiog sg gjsg'
+        content = 'idosahgfiophdgiapohgiahgiapghi gjsigjsiog sg gjsg'
         print(src, content)
         m = Message(src=src, content=content)
         item = MessageQListWidgetItem(m)

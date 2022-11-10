@@ -6,7 +6,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 
 import resouce_rc
-from ui.f1 import Ui_Form
+from ui.testwidgets import Ui_Form
+
 
 class NodeQListWidgetItem(QListWidgetItem):
     def __init__(self, node):
@@ -112,7 +113,7 @@ class TestWindow(QWidget, Ui_Form):
         super().__init__()
         self.setupUi(self)
         self.pushButton.clicked.connect(self.test)
-    
+
     def test(self):
         t = T1('33', 'gfsgsgds')
         item = MessageQListWidgetItem(t)
