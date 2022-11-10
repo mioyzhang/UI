@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainW
 
 from ui.mainwindow import Ui_MainWindow
 from ui.edit import Ui_Form
-from widgets import NodeQListWidgetItem
+from widgets import NodeQListWidgetItem, MessageQListWidgetItem
 
 
 class Node(object):
@@ -30,11 +30,11 @@ class Node(object):
 
 
 class Message(object):
-    def __init__(self):
+    def __init__(self, src=None, content=None):
         super(Message, self).__init__()
-        self.src = None
+        self.src = src
         self.dst = None
-        self.content = None
+        self.content = content
         self.gps = None
         self.time = None
 
@@ -70,18 +70,22 @@ class WorkThread(QThread):
         }
         self.child_thread_trigger.emit(signal)
 
-        while True:
-            # 建立连接后，服务端等待客户端发送的数据，实现通信
-            content = client.recv(1024).decode('utf-8')
-            signal = {
-                'type': 'message',
-                'address': address,
-                'content': content
-            }
-            self.child_thread_trigger.emit(signal)
+        try:
+            while True:
+                # 建立连接后，服务端等待客户端发送的数据，实现通信
+                content = client.recv(1024).decode('utf-8')
+                signal = {
+                    'type': 'message',
+                    'address': address,
+                    'content': content
+                }
+                self.child_thread_trigger.emit(signal)
+        except BaseException as e:
+            print(e)
 
-        client.close()
-        self.server.close()
+        finally:
+            client.close()
+            self.server.close()
 
 
 class EditWidget(QWidget, Ui_Form):
@@ -117,27 +121,28 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         self.action_2.triggered.connect(self.show_edit_widget)
         self.pushButton_2.clicked.connect(self.show_edit_widget)
 
-        self.pushButton_3.clicked.connect(self.test)
+        self.pushButton_4.clicked.connect(self.p1_test)
+        self.pushButton_3.clicked.connect(self.p2_test)
         self.listWidget_nodes.currentItemChanged.connect(self.display)
     
-    def test(self):
+    def p1_test(self):
+        src = '10.0.0.3'
+        content =  'idosahgfiophdgiapohgiahgiapghi gjsigjsiog sg gjsg'
+        print(src, content)
+        m = Message(src=src, content=content)
+        item = MessageQListWidgetItem(m)
+        self.listWidget_messages.addItem(item)
+        self.listWidget_messages.setItemWidget(item, item.widget)
+
+    def p2_test(self):
         new_node = Node(label='s1', ip_address='10.0.0.1')
         self.add_node(new_node)
-        # item = QListWidgetItem() # 创建QListWidgetItem对象
-        # # item->setSizeHint(QSize(item->sizeHint().width(), 30));
-        # item.setSizeHint(QSize(item.sizeHint().width(), 43))
-        # widget = NodeItem(new_node)
-
-        # self.listWidget_nodes.addItem(item) # 添加item
-        # self.listWidget_nodes.setItemWidget(item, widget) # 为item设置widget
 
         item = NodeQListWidgetItem(new_node)
-        # item.setSizeHint(QSize(item.sizeHint().width(), 43))
+        item.setSizeHint(QSize(item.sizeHint().width(), 43))
 
         self.listWidget_nodes.addItem(item)
         self.listWidget_nodes.setItemWidget(item, item.widget)
-        
-        pass
 
     def display(self, *args):
         node = args[0].node
@@ -163,9 +168,18 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
                 new_node = Node(ip_address=ip_address)
                 self.add_node(new_node)
                 item = NodeQListWidgetItem(new_node)
-
                 self.listWidget_nodes.addItem(item)
                 self.listWidget_nodes.setItemWidget(item, item.widget)
+        
+        if date.get('type') == 'message':
+            content = date.get('content')
+            src = ip_address
+            print(src, content)
+            m = Message(src=src, content=content)
+            item = MessageQListWidgetItem(m)
+            self.listWidget_messages.addItem(item)
+            self.listWidget_messages.setItemWidget(item, item.widget)
+            
         pass
 
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1046</width>
-    <height>751</height>
+    <height>750</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -142,9 +142,15 @@
     <rect>
      <x>140</x>
      <y>230</y>
-     <width>281</width>
-     <height>181</height>
+     <width>171</width>
+     <height>80</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>

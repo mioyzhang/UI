@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 
 import resouce_rc
-
+from ui.f1 import Ui_Form
 
 class NodeQListWidgetItem(QListWidgetItem):
     def __init__(self, node):
@@ -58,14 +58,13 @@ class NodeQListWidgetItem(QListWidgetItem):
 
 
 class MessageQListWidgetItem(QListWidgetItem):
-
-    def __init__(self):
+    def __init__(self, message):
         super().__init__()
+        self.message = message 
         self.init_ui()
     
     def init_ui(self):
         self.widget = QWidget()
-        self.widget.setGeometry(QRect(140, 230, 281, 181))
         self.horizontalLayout = QHBoxLayout(self.widget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
 
@@ -75,9 +74,9 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.label_1.setScaledContents(True)
 
         spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Maximum, QSizePolicy.Minimum)
-        spacerItem2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        spacerItem3 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        spacerItem4 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacerItem2 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacerItem3 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        spacerItem4 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.label_2 = QLabel(self.widget)
         self.label_3 = QLabel(self.widget)
@@ -93,11 +92,39 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.horizontalLayout.addItem(spacerItem1)
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-        self.label_2.setText(self.node.label)
-        self.label_3.setText(self.node.ip_address)
+        self.label_2.setText(self.message.src)
+        self.label_3.setText(self.message.content)
+
+        # self.widget.setMaximumHeight(81)
 
         self.setSizeHint(self.widget.sizeHint())
 
 
+class T1(object):
+    def __init__(self, src=None, content=None):
+        super().__init__()
+        self.src = src
+        self.content = content
 
 
+class TestWindow(QWidget, Ui_Form):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.pushButton.clicked.connect(self.test)
+    
+    def test(self):
+        t = T1('33', 'gfsgsgds')
+        item = MessageQListWidgetItem(t)
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, item.widget)
+        pass
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+
+    w = TestWindow()
+    w.show()
+
+    app.exec()
