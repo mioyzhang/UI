@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 import random
 import math
 
@@ -11,42 +12,61 @@ from PyQt5.Qt import QThread
 
 from ui.edit import Ui_EditForm
 
-
-def generate_random_gps(base_log=None, base_lat=None, radius=None):
-    """
-    以（base_log, base_lat）为中心，radius为半径，生成随机GPS信息
-    :param base_log:
-    :param base_lat:
-    :param radius:
-    :return:
-    """
-    radius_in_degrees = radius / 111300
-    u = float(random.uniform(0.0, 1.0))
-    v = float(random.uniform(0.0, 1.0))
-    w = radius_in_degrees * math.sqrt(u)
-    t = 2 * math.pi * v
-    x = w * math.cos(t)
-    y = w * math.sin(t)
-    longitude = y + base_log
-    latitude = x + base_lat
-    # 这里是想保留6位小数点
-    loga = '%.6f' % longitude
-    lata = '%.6f' % latitude
-    return loga, lata
+from tools import generate_random_gps
 
 
-class MyWindow(QMainWindow, Ui_EditForm):
-    sequence = None
-    type = None
-    content = None
-    with_gps = False
-    gps = None
-    files = []
-    images = []
+class Message(object):
+    def __init__(self, sequence=None, type=None, content=None, with_gps=False, gps=None, files=[], images=[]):
+        super(Message, self).__init__()
+        self.sequence = sequence
+        self.type = type
+        self.content = content
+        self.with_gps = with_gps
+        self.gps = gps
+        self.files = files
+        self.images = images
+    
+    def to_dict(self):
+        message_dict = {
+            'sequence': self.sequence,
+            'type': self.type,
+            'content': self.content,
+            'with_gps': self.with_gps,
+            'gps': self.gps,
+            'files': self.files,
+            'images': self.images
+        }
+        return message_dict
+
+    def to_json(self):
+        message_json = json.dumps(self.to_dict())
+        return message_json
+    
+    def __str__(self) -> str:
+        return self.to_json()
+
+
+class Packet(object):
+    def __init__(self) -> None:
+        super().__init__()
+        
+        self.message = None
+        self.src = None
+        self.dst = None
+
+        pass
+
+
+class EditWidget(QWidget, Ui_EditForm):
+    message = None
 
     def __init__(self):
-        super(MyWindow, self).__init__()
+        super(EditWidget, self).__init__()
         self.setupUi(self)
+
+        self.listWidget_files.hide()
+        self.listWidget_images.hide()
+
         self.setWindowIcon(QIcon('resource/icon/cat.png'))
         self.init_connect()
 
@@ -58,44 +78,50 @@ class MyWindow(QMainWindow, Ui_EditForm):
         self.toolButton_file.clicked.connect(self.choose_file)
         self.toolButton_img.clicked.connect(self.choose_image)
 
+        self.listWidget_files.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_files.takeItem(self.listWidget_files.currentRow()))
+        self.listWidget_images.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_images.takeItem(self.listWidget_images.currentRow()))
+
     def generate_random_gps(self):
-        # 120.7 30为中国的中心位置
-        longitude, latitude = generate_random_gps(base_log=120.7, base_lat=30, radius=1000000)
-        self.lineEdit.setText(f'{longitude},{latitude}')
+        longitude, latitude = generate_random_gps()
+        self.lineEdit.setText(f'{longitude}, {latitude}')
 
     def choose_file(self):
         file_filter = "All Files(*);;Text Files(*.txt)"
         filename = QFileDialog.getOpenFileNames(self, '选择文件', os.getcwd(), file_filter)
+        filename = filename[0]
+        self.listWidget_files.show()
+        for i in filename:
+            self.listWidget_files.addItem(i)
         print(filename)
 
     def choose_image(self):
         image_filter = "Image files (*.jpg *.png);;All Files(*)"
-        filename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
-        print(filename)
+        imagename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
+        imagename = imagename[0]
+        self.listWidget_images.show()
+        for i in imagename:
+            self.listWidget_images.addItem(i)
+        print(imagename)
 
     def extract(self):
 
-        self.sequence = self.label_seq.text()
-        self.type = self.comboBox.currentText()
-        self.content = self.textEdit.toPlainText()
-        self.with_gps = self.radioButton.isChecked()
-        self.gps = self.lineEdit.text()
+        sequence = self.label_seq.text()
+        type = self.comboBox.currentText()
+        content = self.textEdit.toPlainText()
+        with_gps = self.radioButton.isChecked()
+        gps = self.lineEdit.text()
 
-        print(self.sequence)
-        print(self.type)
-        print(self.content)
-        print(self.with_gps)
-        print(self.gps)
-        print(self.files)
-        print(self.images)
+        files = [self.listWidget_files.item(i).text() for i in range(self.listWidget_files.count())]
+        images = [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
 
-        pass
+        self.message = Message(sequence, type, content, with_gps, gps, files, images)
+        print(self.message)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = MyWindow()
+    w = EditWidget()
     w.show()
 
     app.exec()

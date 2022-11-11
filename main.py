@@ -3,52 +3,19 @@
 import sys
 import socket
 
-from PyQt5.QtGui import QFont
+import os
+import sys
+
+from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import QThread, pyqtSignal, QSize
-from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainWindow, QListWidgetItem
+from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, QMainWindow, QListWidgetItem, QFileDialog
 
 from ui.mainwindow import Ui_MainWindow
-from ui.edit import Ui_Form
+from ui.edit import Ui_EditForm
 from widgets import NodeQListWidgetItem, MessageQListWidgetItem
 
-
-class Node(object):
-
-    def __init__(self, label=None, ip_address=None, mac_address=None):
-        super(Node, self).__init__()
-        self.label = label
-        self.ip_address = ip_address
-        self.mac_address = mac_address
-
-        self.type = None
-        self.status = None
-        self.last_seen = None
-        self.last_gps = None
-
-    def __str__(self):
-        return f'Node({self.label})'
-
-
-class Message(object):
-    def __init__(self, src=None, content=None):
-        super(Message, self).__init__()
-        self.src = src
-        self.dst = None
-        self.content = content
-        self.gps = None
-        self.time = None
-
-
-class Logic(object):
-    def __init__(self):
-        self.nodes = []
-
-    def add_node(self, node):
-        if node not in self.nodes:
-            self.nodes.append(node)
-
-    def address_in_nodes(self, address):
-        return address in [i.ip_address for i in self.nodes]
+from tools import generate_random_gps
+from logic import *
 
 
 class WorkThread(QThread):
@@ -88,10 +55,65 @@ class WorkThread(QThread):
             self.server.close()
 
 
-class EditWidget(QWidget, Ui_Form):
-    def __init__(self, parent=None):
-        super(EditWidget, self).__init__(parent)
+class EditWidget(QWidget, Ui_EditForm):
+    message = None
+
+    def __init__(self):
+        super(EditWidget, self).__init__()
         self.setupUi(self)
+
+        self.listWidget_files.hide()
+        self.listWidget_images.hide()
+
+        self.setWindowIcon(QIcon('resource/icon/cat.png'))
+        self.init_connect()
+
+    def init_connect(self):
+        self.pushButton_position.clicked.connect(self.generate_random_gps)
+        self.pushButton_generate.clicked.connect(self.generate_random_gps)
+        self.pushButton_submit.clicked.connect(self.extract)
+
+        self.toolButton_file.clicked.connect(self.choose_file)
+        self.toolButton_img.clicked.connect(self.choose_image)
+
+        self.listWidget_files.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_files.takeItem(self.listWidget_files.currentRow()))
+        self.listWidget_images.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_images.takeItem(self.listWidget_images.currentRow()))
+
+    def generate_random_gps(self):
+        longitude, latitude = generate_random_gps()
+        self.lineEdit.setText(f'{longitude}, {latitude}')
+
+    def choose_file(self):
+        file_filter = "All Files(*);;Text Files(*.txt)"
+        filename = QFileDialog.getOpenFileNames(self, '选择文件', os.getcwd(), file_filter)
+        filename = filename[0]
+        self.listWidget_files.show()
+        for i in filename:
+            self.listWidget_files.addItem(i)
+        print(filename)
+
+    def choose_image(self):
+        image_filter = "Image files (*.jpg *.png);;All Files(*)"
+        imagename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
+        imagename = imagename[0]
+        self.listWidget_images.show()
+        for i in imagename:
+            self.listWidget_images.addItem(i)
+        print(imagename)
+
+    def extract(self):
+
+        sequence = self.label_seq.text()
+        type = self.comboBox.currentText()
+        content = self.textEdit.toPlainText()
+        with_gps = self.radioButton.isChecked()
+        gps = self.lineEdit.text()
+
+        files = [self.listWidget_files.item(i).text() for i in range(self.listWidget_files.count())]
+        images = [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
+
+        self.message = Message(sequence, type, content, with_gps, gps, files, images)
+        print(self.message)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow, Logic):
@@ -178,8 +200,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
             item = MessageQListWidgetItem(m)
             self.listWidget_messages.addItem(item)
             self.listWidget_messages.setItemWidget(item, item.widget)
-            
-        pass
 
 
 if __name__ == '__main__':

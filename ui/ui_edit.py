@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'edit.ui'
+# Form implementation generated from reading ui file '/home/dell/workspace/UI/ui/edit.ui'
 #
 # Created by: PyQt5 UI code generator 5.12
 #
