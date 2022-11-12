@@ -19,15 +19,15 @@ class Node(object):
 
 
 class Message(object):
-    def __init__(self, sequence=None, type=None, content=None, with_gps=False, gps=None, files=[], images=[]):
+    def __init__(self, sequence=None, type_=None, content=None, with_gps=False, gps=None, files=None, images=None):
         super(Message, self).__init__()
         self.sequence = sequence
-        self.type = type
+        self.type = type_
         self.content = content
         self.with_gps = with_gps
         self.gps = gps
-        self.files = files
-        self.images = images
+        self.files = files if files else []
+        self.images = images if images else []
     
     def to_dict(self):
         message_dict = {
@@ -50,12 +50,11 @@ class Message(object):
 
 
 class Packet(object):
-    def __init__(self) -> None:
+    def __init__(self, src, dst, message: Message):
         super().__init__()
-        
-        self.message = None
-        self.src = None
-        self.dst = None
+        self.src = src
+        self.dst = dst
+        self.message = message
 
 
 class Logic(object):

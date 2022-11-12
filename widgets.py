@@ -94,7 +94,7 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.horizontalLayout.addLayout(self.verticalLayout)
 
         self.label_2.setText(self.message.src)
-        self.label_3.setText(self.message.content)
+        self.label_3.setText(self.message.message.content)
 
         # self.widget.setMaximumHeight(81)
 

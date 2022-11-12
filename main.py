@@ -148,10 +148,11 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
     
     def p1_test(self):
         src = '10.0.0.3'
-        content = 'idosahgfiophdgiapohgiahgiapghi gjsigjsiog sg gjsg'
+        content = 'Hello world'
         print(src, content)
-        m = Message(src=src, content=content)
-        item = MessageQListWidgetItem(m)
+        m = Message(content=content)
+        p = Packet(src=src, dst=None, message=m)
+        item = MessageQListWidgetItem(p)
         self.listWidget_messages.addItem(item)
         self.listWidget_messages.setItemWidget(item, item.widget)
 
@@ -196,8 +197,11 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
             content = date.get('content')
             src = ip_address
             print(src, content)
-            m = Message(src=src, content=content)
-            item = MessageQListWidgetItem(m)
+
+            m = Message(content=content)
+            p = Packet(src=src, dst=None, message=m)
+
+            item = MessageQListWidgetItem(p)
             self.listWidget_messages.addItem(item)
             self.listWidget_messages.setItemWidget(item, item.widget)
 
