@@ -19,15 +19,27 @@ class Node(object):
 
 
 class Message(object):
-    def __init__(self, sequence=None, type_=None, content=None, with_gps=False, gps=None, files=None, images=None):
+    def __init__(self, sequence=None, type_=None, content=None, with_gps=False,
+                 gps=None, files=None, images=None, json_=None):
         super(Message, self).__init__()
-        self.sequence = sequence
-        self.type = type_
-        self.content = content
-        self.with_gps = with_gps
-        self.gps = gps
-        self.files = files if files else []
-        self.images = images if images else []
+        if json_:
+            json_ = json.loads(json_)
+            self.sequence = json_.get('sequence')
+            self.type = json_.get('type')
+            self.content = json_.get('content')
+            self.with_gps = json_.get('with_gps')
+            self.gps = json_.get('gps')
+            self.files = json_.get('files')
+            self.images = json_.get('images')
+        else:
+            self.sequence = sequence
+            self.type = type_
+            self.content = content
+            self.with_gps = with_gps
+            self.gps = gps
+            self.files = files if files else []
+            self.images = images if images else []
+
     
     def to_dict(self):
         message_dict = {

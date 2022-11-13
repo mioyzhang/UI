@@ -8,4 +8,3 @@ s.connect((host, port))
 while True:
     msg = input('send:')
     s.send(msg.encode())
-

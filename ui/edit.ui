@@ -125,7 +125,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+       <widget class="QLineEdit" name="lineEdit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_position">
@@ -214,7 +218,11 @@
      </layout>
     </item>
     <item>
-     <widget class="QListWidget" name="listWidget_images"/>
+     <widget class="QListWidget" name="listWidget_images">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
     <item>
      <widget class="QListWidget" name="listWidget_files"/>
@@ -264,12 +272,28 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>455</x>
-     <y>663</y>
+     <x>579</x>
+     <y>610</y>
     </hint>
     <hint type="destinationlabel">
      <x>275</x>
      <y>643</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>lineEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>155</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>216</x>
+     <y>261</y>
     </hint>
    </hints>
   </connection>
