@@ -17,29 +17,28 @@ class Node(object):
     def __str__(self):
         return f'Node({self.label})'
 
+    def __hash__(self) -> int:
+        return hash(self.ip_address)
+
+    def __eq__(self, other):
+        return isinstance(other, Node) and self.ip_address == other.ip_address
+
 
 class Message(object):
-    def __init__(self, sequence=None, type_=None, content=None, with_gps=False,
-                 gps=None, files=None, images=None, json_=None):
+    def __init__(self, args):
+        if type(args) not in (str, dict):
+            raise TypeError
         super(Message, self).__init__()
-        if json_:
-            json_ = json.loads(json_)
-            self.sequence = json_.get('sequence')
-            self.type = json_.get('type')
-            self.content = json_.get('content')
-            self.with_gps = json_.get('with_gps')
-            self.gps = json_.get('gps')
-            self.files = json_.get('files')
-            self.images = json_.get('images')
-        else:
-            self.sequence = sequence
-            self.type = type_
-            self.content = content
-            self.with_gps = with_gps
-            self.gps = gps
-            self.files = files if files else []
-            self.images = images if images else []
+        if isinstance(args, str):
+            args = json.load(args)
 
+        self.sequence = args.get('sequence')
+        self.type = args.get('type')
+        self.with_gps = args.get('with_gps')
+        self.gps = args.get('gps')
+        self.content = args.get('content')
+        self.files = args.get('files')
+        self.images = args.get('images')
     
     def to_dict(self):
         message_dict = {
@@ -47,31 +46,34 @@ class Message(object):
             'type': self.type,
             'content': self.content,
             'with_gps': self.with_gps,
-            'gps': self.gps,
-            'files': self.files,
-            'images': self.images
+            'gps': self.gps
         }
         return message_dict
 
     def to_json(self):
-        message_json = json.dumps(self.to_dict())
-        return message_json
+        return json.dumps(self.to_dict())
     
     def __str__(self) -> str:
         return self.to_json()
 
 
-class Packet(object):
-    def __init__(self, src, dst, message: Message):
-        super().__init__()
-        self.src = src
-        self.dst = dst
-        self.message = message
+class Packet(Message):
+    def __init__(self, message_args):
+        super().__init__(message_args)
+        
+        self.src = None
+        self.dst = None
+        self.protocol = None
+        self.status = None
+        self.recv_time = None
+        self.send_time = None
 
 
 class Logic(object):
     def __init__(self):
         self.nodes = []
+        self.messages = []
+        self.packets = []
 
     def add_node(self, node):
         if node not in self.nodes:
