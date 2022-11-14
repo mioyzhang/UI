@@ -59,9 +59,9 @@ class NodeQListWidgetItem(QListWidgetItem):
 
 
 class MessageQListWidgetItem(QListWidgetItem):
-    def __init__(self, message):
+    def __init__(self, packet):
         super().__init__()
-        self.message = message 
+        self.packet = packet
         self.init_ui()
     
     def init_ui(self):
@@ -93,8 +93,8 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.horizontalLayout.addItem(spacerItem1)
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-        self.label_2.setText(self.message.src)
-        self.label_3.setText(self.message.message.content)
+        self.label_2.setText(self.packet.src)
+        self.label_3.setText(str(self.packet.message))
 
         # self.widget.setMaximumHeight(81)
 

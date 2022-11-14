@@ -26,11 +26,11 @@ class Node(object):
 
 class Message(object):
     def __init__(self, args):
+        super(Message, self).__init__()
         if type(args) not in (str, dict):
             raise TypeError
-        super(Message, self).__init__()
         if isinstance(args, str):
-            args = json.load(args)
+            args = json.loads(args)
 
         self.sequence = args.get('sequence')
         self.type = args.get('type')
@@ -57,16 +57,21 @@ class Message(object):
         return self.to_json()
 
 
-class Packet(Message):
-    def __init__(self, message_args):
-        super().__init__(message_args)
+class Packet(object):
+    def __init__(self, message, src=None, dst=None):
+        super().__init__()
         
-        self.src = None
-        self.dst = None
+        self.src = src
+        self.dst = dst
         self.protocol = None
         self.status = None
         self.recv_time = None
         self.send_time = None
+
+        self.message = message
+
+    def __str__(self) -> str:
+        return f'Packet({self.__hash__()})'
 
 
 class Logic(object):
