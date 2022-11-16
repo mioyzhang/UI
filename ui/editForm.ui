@@ -262,34 +262,18 @@
  </resources>
  <connections>
   <connection>
-   <sender>pushButton_cancel</sender>
-   <signal>clicked()</signal>
-   <receiver>EditForm</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>681</x>
-     <y>573</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>275</x>
-     <y>583</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>radioButton_gps</sender>
    <signal>clicked(bool)</signal>
    <receiver>lineEdit_gps</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>45</x>
-     <y>253</y>
+     <x>44</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>165</x>
-     <y>254</y>
+     <x>216</x>
+     <y>236</y>
     </hint>
    </hints>
   </connection>
@@ -300,12 +284,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>29</x>
-     <y>249</y>
+     <x>39</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>615</x>
-     <y>245</y>
+     <x>686</x>
+     <y>238</y>
     </hint>
    </hints>
   </connection>
@@ -316,12 +300,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>37</x>
-     <y>235</y>
+     <x>44</x>
+     <y>234</y>
     </hint>
     <hint type="destinationlabel">
-     <x>728</x>
-     <y>248</y>
+     <x>767</x>
+     <y>238</y>
     </hint>
    </hints>
   </connection>

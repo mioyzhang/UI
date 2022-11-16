@@ -46,7 +46,9 @@ class Message(object):
             'type': self.type,
             'content': self.content,
             'with_gps': self.with_gps,
-            'gps': self.gps
+            'gps': self.gps,
+            'files': self.files,
+            'images': self.images
         }
         return message_dict
 

@@ -11,8 +11,8 @@ from PyQt5.QtCore import QThread, pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, \
     QMainWindow, QListWidgetItem, QFileDialog, QMessageBox
 
-from ui.mainwindow import Ui_MainWindow
-from ui.edit import Ui_EditForm
+from ui.mainWindow import Ui_MainWindow
+from ui.editForm import Ui_EditForm
 from widgets import NodeQListWidgetItem, MessageQListWidgetItem
 
 from tools import generate_random_gps
@@ -62,67 +62,6 @@ class WorkThread(QThread):
         finally:
             client.close()
             self.server.close()
-
-
-class EditWidget(QWidget, Ui_EditForm):
-    message = None
-
-    def __init__(self):
-        super(EditWidget, self).__init__()
-        self.setupUi(self)
-
-        self.listWidget_files.hide()
-        self.listWidget_images.hide()
-
-        self.setWindowIcon(QIcon('resource/icon/cat.png'))
-        self.init_connect()
-
-    def init_connect(self):
-        self.pushButton_position.clicked.connect(self.generate_random_gps)
-        self.pushButton_generate.clicked.connect(self.generate_random_gps)
-        self.pushButton_submit.clicked.connect(self.extract)
-
-        self.toolButton_file.clicked.connect(self.choose_file)
-        self.toolButton_img.clicked.connect(self.choose_image)
-
-        self.listWidget_files.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_files.takeItem(self.listWidget_files.currentRow()))
-        self.listWidget_images.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_images.takeItem(self.listWidget_images.currentRow()))
-
-    def generate_random_gps(self):
-        longitude, latitude = generate_random_gps()
-        self.lineEdit.setText(f'{longitude}, {latitude}')
-
-    def choose_file(self):
-        file_filter = "All Files(*);;Text Files(*.txt)"
-        filename = QFileDialog.getOpenFileNames(self, '选择文件', os.getcwd(), file_filter)
-        filename = filename[0]
-        self.listWidget_files.show()
-        for i in filename:
-            self.listWidget_files.addItem(i)
-        print(filename)
-
-    def choose_image(self):
-        image_filter = "Image files (*.jpg *.png);;All Files(*)"
-        imagename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
-        imagename = imagename[0]
-        self.listWidget_images.show()
-        for i in imagename:
-            self.listWidget_images.addItem(i)
-        print(imagename)
-
-    def extract(self):
-
-        sequence = self.label_seq.text()
-        type = self.comboBox.currentText()
-        content = self.textEdit.toPlainText()
-        with_gps = self.radioButton.isChecked()
-        gps = self.lineEdit.text()
-
-        files = [self.listWidget_files.item(i).text() for i in range(self.listWidget_files.count())]
-        images = [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
-
-        self.message = Message(sequence, type, content, with_gps, gps, files, images)
-        print(self.message)
 
 
 class MainWindow(QMainWindow, Ui_MainWindow, Logic):
@@ -237,10 +176,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
 
     def turn_edit_widget(self):
         self.stackedWidget_message.setCurrentIndex(1)
-
-    def show_edit_widget(self):
-        self.edit_widget = EditWidget()
-        self.edit_widget.show()
 
     def message_process(self, signal: dict):
         # print(sys._getframe().f_code.co_name)

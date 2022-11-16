@@ -1,5 +1,14 @@
 import random
 import math
+import socket
+
+
+SIGNAL_SEND = 1
+SIGNAL_CHECK = 1
+
+LISTENING_PORT = 8900
+
+HostName = socket.gethostname()
 
 
 def generate_random_gps(base_log=120.7, base_lat=30, radius=1000000):

@@ -11,8 +11,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.Qt import QThread
 
-from ui.edit import Ui_EditForm
-from ui.terminal_mainwindow import Ui_TerminalMainWindow
+from ui.editForm import Ui_EditForm
+from ui.edgeWindow import Ui_TerminalMainWindow
 
 from ui.ui_test import Ui_Form
 

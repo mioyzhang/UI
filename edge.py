@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 import socket
 
 from PyQt5.QtGui import QIcon
@@ -8,11 +9,11 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, pyqtSignal, QSize
 from PyQt5.Qt import QThread
 
-from ui.edit import Ui_EditForm
-from ui.terminal_mainwindow import Ui_TerminalMainWindow
+from ui.editForm import Ui_EditForm
+from ui.edgeWindow import Ui_EdgeMainWindow
 
-from tools import generate_random_gps
-from logic import *
+from tools import *
+from logic import Logic, Message
 
 
 class SocketThread(QThread):
@@ -23,7 +24,7 @@ class SocketThread(QThread):
         super(SocketThread, self).__init__()
         self.main_thread_trigger = trigger
         self.sock = socket.socket()
-        self.dst = (socket.gethostname(), 8900)\
+        self.dst = (socket.gethostname(), 8900)
 
         self.connection = False
 
@@ -51,16 +52,21 @@ class SocketThread(QThread):
             self.trigger_out.emit(back)
             return False
 
-    def slot(self, arg: dict):
-        print(f'QThread recv {arg}')
-        if arg.get('type') == 'connect':
+    def slot(self, args: dict):
+        print(f'Thread <-- {args}')
+        type_ = args.get('type')
+        context = args.get('context')
+
+        if args.get('type') == 'connect':
             self.connect()
-        if arg.get('type') == 'test':
-            self.test()
-            # self.test_delay()
-        if arg.get('type') == 'send':
-            message = arg.get('context')
-            self.send_message(message)
+
+        if type_ == SIGNAL_CHECK:
+            dest = args.get('dest')
+            port = args.get('port')
+
+        if type_ == SIGNAL_SEND:
+            dest = args.get('dest')
+            protocol = args.get('protocol')
 
     def test_delay(self):
         current_time = time.time()
@@ -97,33 +103,28 @@ class SocketThread(QThread):
             time.sleep(1)
 
 
-class TerminalMainWindow(QMainWindow, Ui_TerminalMainWindow):
+class TerminalMainWindow(QMainWindow, Ui_EdgeMainWindow):
     main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
+
+        self.work_thread = None
+        self.sequence = 0
+
         self.setupUi(self)
-
-        self.listWidget_files.hide()
-        self.listWidget_images.hide()
-
         self.init_connect()
 
+        # temporary use
+        self.editwidget.label_seq.setText(f'{self.sequence:0>8d}')
+
     def init_connect(self):
-        self.pushButton_position.clicked.connect(self.generate_random_gps)
-        self.pushButton_generate.clicked.connect(self.generate_random_gps)
-        self.pushButton_submit.clicked.connect(self.extract)
 
-        self.toolButton_file.clicked.connect(self.choose_file)
-        self.toolButton_img.clicked.connect(self.choose_image)
+        self.pushButton_check.clicked.connect(self.check_connect)
+        # self.pushButton_test2.clicked.connect(self.test)
 
-        self.listWidget_files.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_files.takeItem(self.listWidget_files.currentRow()))
-        self.listWidget_images.itemDoubleClicked['QListWidgetItem*'].connect(lambda: self.listWidget_images.takeItem(self.listWidget_images.currentRow()))
-
-        self.pushButton_check.clicked.connect(self.connect)
+        # self.editwidget.pushButton_submit.clicked.connect(self.send)
         self.pushButton_send.clicked.connect(self.send)
-
-        self.pushButton_set.clicked.connect(self.test)
 
         # 子线程信号与槽
         self.work_thread = SocketThread(self.main_thread_trigger)
@@ -132,45 +133,17 @@ class TerminalMainWindow(QMainWindow, Ui_TerminalMainWindow):
         self.work_thread.start()
 
     def test(self):
-        self.work_thread.trigger_in.emit({'type': 'test'})
+        print('test')
+        # self.work_thread.trigger_in.emit({'type': 'test'})
 
-    def connect(self):
-        self.work_thread.trigger_in.emit({'type': 'connect'})
-        pass
-
-    def generate_random_gps(self):
-        longitude, latitude = generate_random_gps()
-        self.lineEdit_gps.setText(f'{longitude}, {latitude}')
-
-    def choose_file(self):
-        file_filter = "All Files(*);;Text Files(*.txt)"
-        filename = QFileDialog.getOpenFileNames(self, '选择文件', os.getcwd(), file_filter)
-        filename = filename[0]
-        self.listWidget_files.show()
-        for i in filename:
-            self.listWidget_files.addItem(i)
-        print(filename)
-
-    def choose_image(self):
-        image_filter = "Image files (*.jpg *.png);;All Files(*)"
-        imagename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
-        imagename = imagename[0]
-        self.listWidget_images.show()
-        for i in imagename:
-            self.listWidget_images.addItem(i)
-        print(imagename)
-
-    def extract(self):
-        sequence = self.label_seq.text()
-        type = self.comboBox.currentText()
-        content = self.textEdit.toPlainText()
-        with_gps = self.radioButton.isChecked()
-        gps = self.lineEdit.text()
-
-        files = [self.listWidget_files.item(i).text() for i in range(self.listWidget_files.count())]
-        images = [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
-
-        self.message = Message(sequence, type, content, with_gps, gps, files, images)
+    def check_connect(self):
+        signal = {
+            'type': SIGNAL_CHECK,
+            'dest': self.lineEdit_c_address.text(),
+            'port': self.lineEdit_c_port.text(),
+        }
+        print(f'main   --> {signal}')
+        self.work_thread.trigger_in.emit(signal)
 
     def slot(self, arg: dict):
         # if self.work_thread.started
@@ -179,16 +152,22 @@ class TerminalMainWindow(QMainWindow, Ui_TerminalMainWindow):
         pass
 
     def send(self):
-        self.extract()
-        signal = {
-            'type': 'send',
-            'context': self.message.to_json(),
-            # 'context': self.message.to_json(),
-        }
-        print(self.message.to_json())
-        self.work_thread.trigger_in.emit(signal)
+        self.editwidget.extract()
+        message = self.editwidget.message
 
-        pass
+        address = '127.0.0.1'
+        if self.radioButton_address.isChecked():
+            address = self.lineEdit_address.text()
+        protocol = self.comboBox_protocol.currentText()
+
+        signal = {
+            'type': SIGNAL_SEND,
+            'context': message.to_json(),
+            'dest': address,
+            'protocol': protocol
+        }
+        print(f'main   --> {message.to_json()}')
+        self.work_thread.trigger_in.emit(signal)
 
 
 if __name__ == '__main__':

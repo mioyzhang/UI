@@ -56,7 +56,11 @@ class MyWindow(QWidget):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    win = MyWindow()
-    win.show()
-    sys.exit(app.exec_())
+    # app = QApplication(sys.argv)
+    # win = MyWindow()
+    # win.show()
+    # sys.exit(app.exec_())
+    a= {'ff': 12}
+    b = {'ff': 23}
+    c = {**a, **b}
+    print(c)
