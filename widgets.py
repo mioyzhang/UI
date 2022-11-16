@@ -1,4 +1,5 @@
 import sys
+import typing
 
 from PyQt5.Qt import *
 from PyQt5.QtCore import *
@@ -6,6 +7,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QWidget
 
 import resouce_rc
+from ui.edit import Ui_EditForm
 from ui.testwidgets import Ui_Form
 
 
@@ -101,6 +103,17 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.setSizeHint(self.widget.sizeHint())
 
 
+class MessageEditWidget(QWidget, Ui_EditForm): 
+    # def __init__(self, parent: typing.Optional['QWidget'] = ...) -> None:
+    #     super().__init__(parent)
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+
+        self.setupUi(self)
+        self.listWidget_files.hide()
+        self.listWidget_images.hide()
+
+
 class T1(object):
     def __init__(self, src=None, content=None):
         super().__init__()
@@ -125,7 +138,8 @@ class TestWindow(QWidget, Ui_Form):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = TestWindow()
+    # w = TestWindow()
+    w = MessageEditWidget()
     w.show()
 
     app.exec()
