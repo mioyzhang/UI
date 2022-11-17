@@ -1,5 +1,7 @@
 import json
 
+from tools import *
+
 
 class Node(object):
 
@@ -56,24 +58,39 @@ class Message(object):
         return json.dumps(self.to_dict())
     
     def __str__(self) -> str:
-        return self.to_json()
+        return f'Message({self.sequence})'
 
 
 class Packet(object):
-    def __init__(self, message, src=None, dst=None, protocol=None):
+    def __init__(self, message, src=None, dst=None, protocol='TCP'):
         super().__init__()
         
         self.src = src
         self.dst = dst
         self.protocol = protocol
-        self.status = None
+        self.status = PACKET_UNSENT
         self.recv_time = None
         self.send_time = None
 
         self.message = message
 
+    def to_dict(self):
+        packet_dict = {
+            'src': self.src,
+            'dst': self.dst,
+            'protocol': self.protocol,
+            'status': self.status,
+            'recv_time': self.recv_time,
+            'send_time': self.send_time,
+            'message': self.message.to_dict()
+        }
+        return packet_dict
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
     def __str__(self) -> str:
-        return f'Packet({self.__hash__()})'
+        return f'Packet({self.message.sequence})'
 
 
 class Logic(object):

@@ -1,16 +1,11 @@
-import os
 import sys
 import time
 import json
-import socket
 import threading
 
-from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread, pyqtSignal, QSize
-from PyQt5.Qt import QThread
+from PyQt5.QtCore import QThread, pyqtSignal
 
-from ui.editForm import Ui_EditForm
 from ui.edgeWindow import Ui_EdgeMainWindow
 
 from tools import *
@@ -18,12 +13,19 @@ from logic import Logic, Message, Packet
 from transfer import TransferThread
 
 
-class SocketThread(TransferThread):
+class SocketThread(QThread):
     trigger_in = pyqtSignal(dict)
     trigger_out = pyqtSignal(dict)
 
-    def __init__(self):
+    def __init__(self, trigger):
         super(SocketThread, self).__init__()
+        self.client = socket.socket()
+        self.server = socket.socket()
+        self.connected = None
+        self.connections = []
+
+        self.trigger = trigger
+        self.trigger.connect(self.slot)
 
     def test(self):
         print('test')
@@ -37,14 +39,12 @@ class SocketThread(TransferThread):
             if self.connected[0] == address[0]:
                 if self.connected[1] != address[1]:
                     back = {
-                        'type': BACK_REPLAY,
                         'status': PORT_MODIFY,
-                        'address': self.connected[0],
                         'port': self.connected[1]
                     }
-                    self.trigger_out.emit(back)
-
-                return True
+                else:
+                    back = {}
+                return True, back
 
             else:
                 print(f'disconnect {self.connected}')
@@ -54,48 +54,63 @@ class SocketThread(TransferThread):
         
         print(f'try to connect to {address}')
         try:
-
             self.client.connect(address)
             self.connected = address
-            return True
+            return True, {}
         
         except BaseException as e:
             back = {
-                'type': BACK_REPLAY,
                 'status': CONNECT_FAIL,
                 'error': str(e)
             }
-            print(e)
-            self.trigger_out.emit(back)
             self.client = socket.socket()
-            return False
+            return False, back
 
-    def test_delay(self, address):
-        if not self.connect(address):
-            return False
+    def check_delay(self, address):
+        status, back1 = self.connect(address)
+        if status:
+            message_dict = {'type': 'test', 'time': time.time()}
+            message = json.dumps(message_dict)
+            status, back2 = self.send(message)
 
-        message_dict = {
-            'type': 'test',
-            'time': time.time()
-        }
-        message = json.dumps(message_dict)
-        if self.send(message):
-            recv = self.client.recv(2048).decode()
-            recv = json.loads(recv)
+            if status:
+                try:
+                    recv = self.client.recv(2048).decode()
+                    recv = json.loads(recv)
 
-            past_time = recv.get('time')
-            delay = time.time() - past_time
+                    past_time = recv.get('time')
+                    time.sleep(0.1)
+                    delay = time.time() - past_time
 
-            back = {
-                'type': BACK_DELAY,
-                'delay': delay
-            }
-            print(f'Thread  --> {back}')
-            self.trigger_out.emit(back)
-            return False
-            
+                    print(past_time)
+                    print(time.time())
+
+                    back = {
+                        'type': BACK_CHECK,
+                        'status': CONNECT_SUCCESS,
+                        'delay': delay
+                    }
+
+                    if back1.get('status') == PORT_MODIFY:
+                        back['status'] = PORT_MODIFY
+                        back['port'] = back1.get('port')
+
+                    print(f'Thread  --> {back}')
+                    self.trigger_out.emit(back)
+
+                except BaseException as e:
+                    back = {
+                        'type': BACK_CHECK,
+                        'status': RECV_ERROR,
+                        'error': e
+                    }
+                    self.trigger_out.emit(back)
+            else:
+                back2['type'] = BACK_CHECK
+                self.trigger_out.emit(back2)
         else:
-            pass
+            back1['type'] = BACK_CHECK
+            self.trigger_out.emit(back1)
     
     def send_message(self, message, ):
         pass
@@ -115,37 +130,40 @@ class SocketThread(TransferThread):
             self.send()
 
         if type_ == SIGNAL_CHECK:
-            dest = args.get('dest')
-            port = args.get('port')
-            self.test_delay((dest, port))
+            address = args.get('address')
+            self.check_delay(address)
 
-    def send(self, message, success_signer=False):
+        if type_ == SIGNAL_TEST:
+            for i in range(5):
+                print(i)
+                time.sleep(1)
+
+    def send(self, message):
         print(f'send {message} to {self.connected}')
+
         try:
             self.client.send(message.encode())
-            print(f'send {message} to {self.connected} success')
-            if success_signer:
-                back = {
-                    'type': BACK_SEND,
-                    'status': SEND_SUCCESS,
-                    'context': message
-                }
-                self.trigger_out.emit(back)
-            return True
+            back = {
+                'status': SEND_SUCCESS,
+                'context': message
+            }
+            return True, back
         except BaseException as e:
             back = {
-                'type': BACK_REPLAY,
                 'status': SEND_ERROR,
                 'context': message,
                 'error': str(e)
             }
-            print(f'Thread  --> {back}')
-            self.trigger_out.emit(back)
-            return False
+            print(f'fail send {message} to {self.connected}')
+
+            self.client.close()
+            self.client = socket.socket()
+            return False, back
 
     def run(self):
         while True:
             time.sleep(1)
+            print('.', end='')
         
         self.server.bind(('0.0.0.0', 8900))
         self.server.listen(5)
@@ -163,7 +181,8 @@ class SocketThread(TransferThread):
             # p = RecvThread(client, address)
             p.start()
 
-class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
+
+class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
     main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
@@ -181,7 +200,7 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
     def init_connect(self):
 
         self.pushButton_check.clicked.connect(self.check_connect)
-        # self.pushButton_test.clicked.connect(self.check_delay)
+        self.pushButton_test2.clicked.connect(self.test)
 
         # self.editwidget.pushButton_submit.clicked.connect(self.send)
         self.pushButton_send.clicked.connect(self.send)
@@ -189,14 +208,30 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.pushButton_turn.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
 
         # 子线程信号与槽
-        self.work_thread = SocketThread()
+        # self.work_thread = SocketThread()
+        # self.work_thread.trigger_in.connect(self.work_thread.slot)
+        # self.work_thread.trigger_out.connect(self.slot)
+        # self.work_thread.start()
+
+        self.work_thread = SocketThread(self.main_thread_trigger)
         self.work_thread.trigger_in.connect(self.work_thread.slot)
-        self.work_thread.trigger_out.connect(self.slot)
+
+        self.main_thread_trigger.connect(self.slot)
+        # self.work_thread.trigger_out.connect(self.slot)
         self.work_thread.start()
 
     def test(self):
-        print('test')
-        # self.work_thread.trigger_in.emit({'type': 'test'})
+        # print('test')
+        # for i in range(5):
+        #     print(i)
+        #     time.sleep(1)
+
+        signal = {
+            'type': SIGNAL_TEST,
+            'address': (self.lineEdit_c_address.text(), int(self.lineEdit_c_port.text())),
+        }
+        print(f'main   --> {signal}')
+        self.work_thread.trigger_in.emit(signal)
 
     def check_connect(self):
         self.pushButton_set.setChecked(False)
@@ -205,8 +240,7 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
 
         signal = {
             'type': SIGNAL_CHECK,
-            'dest': self.lineEdit_c_address.text(),
-            'port': int(self.lineEdit_c_port.text()),
+            'address': (self.lineEdit_c_address.text(), int(self.lineEdit_c_port.text())),
         }
         print(f'main   --> {signal}')
         self.work_thread.trigger_in.emit(signal)
@@ -214,6 +248,7 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
     def view_delay(self, delay):
         delay = delay * 10 ** 3 / 2
         self.label_delay.setText(f'{delay:.3f} ms')
+        # self.label_delay.setText(f'{delay:.2e} ms')
 
         self.label_status.setText('connected')
         self.label_status.setStyleSheet("color:green;"); 
@@ -227,32 +262,24 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
             status = args.get('status')
             context = args.get('context')
 
-        if type_ == BACK_DELAY:
-            delay = args.get('delay')
-            self.view_delay(delay)
-        
-        if type_ == BACK_REPLAY:
+        if type_ == BACK_CHECK:
             status = args.get('status')
 
             if status == PORT_MODIFY:
                 port = args.get('port')
                 self.lineEdit_c_port.setText(f'{port}')
-                # self.pushButton_set.
+
+            if status in [PORT_MODIFY, CONNECT_SUCCESS]:
+                delay = args.get('delay')
+                self.view_delay(delay)
             
-            if status == CONNECT_FAIL:
+            if status in [SEND_ERROR, RECV_ERROR, CONNECT_FAIL]:
                 error = args.get('error')
 
                 self.label_delay.setText('inf')
-                self.label_status.setText('disconnected')
-                self.label_status.setStyleSheet("color:red;"); 
+                self.label_status.setText('disconnect')
+                self.label_status.setStyleSheet("color:red;")
                 QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-                
-
-            if status == SEND_ERROR:
-                context = args.get('context')
-                error = args.get('error')
-                QMessageBox.warning(self, "send fail", f'{context}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-
 
     def send(self):
         self.editwidget.extract()
@@ -277,7 +304,7 @@ class EdgelMainWindow(QMainWindow, Ui_EdgeMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = EdgelMainWindow()
+    w = EdgeMainWindow()
     w.show()
 
     app.exec()

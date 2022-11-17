@@ -1,62 +1,57 @@
+from PyQt5.Qt import QApplication, QWidget, QPushButton, QThread, QMutex, pyqtSignal
 import sys
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+import time
 
 
-class MyWindow(QWidget):
-    def __init__(self, parent=None):
-        super(MyWindow, self).__init__(parent)
-        self.setWindowTitle("弹出式对话框例子")
-        self.resize(400, 200)
-        self.btn1 = QPushButton(self)
-        self.btn1.setText("消息框")
-        self.btn1.clicked.connect(self.msg1)
-        layout = QVBoxLayout()
 
-        self.btn2 = QPushButton(self)
-        self.btn2.setText("问答对话框")
-        self.btn2.clicked.connect(self.msg2)
+class PreventFastClickThreadSignal(QThread):  # 线程2
+    signal = pyqtSignal()
 
-        self.btn3 = QPushButton()
-        self.btn3.setText("警告对话框")
-        self.btn3.clicked.connect(self.msg3)
+    def __init__(self, signal):
+        super().__init__()
+        # self.signal.connect(self.f)
 
-        self.btn4 = QPushButton()
-        self.btn4.setText("严重错误对话框")
-        self.btn4.clicked.connect(self.msg4)
+    def f(self):
+        for i in range(10):
+            print(i)
+            time.sleep(1)
 
-        self.btn5 = QPushButton()
-        self.btn5.setText("关于对话框")
-        self.btn5.clicked.connect(self.msg5)
+    def run(self):
+        while True:
+            print('.', end='')
+            time.sleep(1)
 
-        layout.addWidget(self.btn1)
-        layout.addWidget(self.btn2)
-        layout.addWidget(self.btn3)
-        layout.addWidget(self.btn4)
-        layout.addWidget(self.btn5)
 
-        self.setLayout(layout)
+class MyWin(QWidget):
+    main_signal = pyqtSignal()
 
-    def msg1(self):
-        # 使用infomation信息框
-        QMessageBox.information(self, "标题", "消息正文", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+    def __init__(self):
+        super().__init__()
+        # 按钮初始化
+        self.btn_1 = QPushButton('按钮1', self)
+        self.btn_1.setCheckable(True)
+        self.btn_1.move(120, 80)
+        self.btn_1.clicked.connect(self.click_1)  # 绑定槽函数
 
-    def msg2(self):
-        QMessageBox.question(self, "标题", "问答消息正文", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        self.btn_2 = QPushButton('按钮2', self)
+        self.btn_2.setCheckable(True)
+        self.btn_2.move(120, 120)
+        self.btn_2.clicked.connect(self.click_2)  # 绑定槽函数
 
-    def msg3(self):
-        QMessageBox.warning(self, "标题", "警告消息正文", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        self.thread = PreventFastClickThreadSignal()
+        # self.thread.signal.connect(self.thread.f)
+        self.thread.start()
 
-    def msg4(self):
-        QMessageBox.critical(self, "标题", "严重错误消息正文", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+    def click_1(self):
+        print('click_1')
 
-    def msg5(self):
-        QMessageBox.about(self, "标题", "关于消息正文")
+    def click_2(self):
+        print('click_2')
+        self.thread.signal.emit()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win = MyWindow()
-    win.show()
+    myshow = MyWin()
+    myshow.show()
     sys.exit(app.exec_())
