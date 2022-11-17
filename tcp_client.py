@@ -4,7 +4,12 @@ s = socket.socket()  # 创建 socket 对象
 host = socket.gethostname()  # 获取本地主机名
 port = 8900  # 设置端口号
 
-s.connect((host, port))
+try:
+    # s.connect((host, port))
+    s.connect(('22.0.0.1', port))
+except BaseException as e:
+    raise e
+
 while True:
     msg = input('send:')
     s.send(msg.encode())

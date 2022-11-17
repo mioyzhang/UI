@@ -4,11 +4,24 @@ import socket
 
 
 SIGNAL_SEND = 1
-SIGNAL_CHECK = 1
+SIGNAL_CHECK = 2
 
+BACK_CONNECTION = 5
+BACK_SEND = 6
+BACK_DELAY = 8
+
+BACK_REPLAY = 10
+
+PORT_MODIFY = 11
+CONNECT_FAIL = 12
+SEND_ERROR = 13
+SEND_SUCCESS = 14
+
+TIMEOUT = 3
 LISTENING_PORT = 8900
 
 HostName = socket.gethostname()
+socket.setdefaulttimeout(TIMEOUT)
 
 
 def generate_random_gps(base_log=120.7, base_lat=30, radius=1000000):

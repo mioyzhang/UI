@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1326</width>
-    <height>985</height>
+    <width>965</width>
+    <height>535</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
       <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="page">
          <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -187,18 +187,35 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_test2">
-            <property name="text">
-             <string>test2</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_send">
-            <property name="text">
-             <string>发送</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <spacer name="verticalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_send">
+              <property name="text">
+               <string>发送</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_test2">
+              <property name="text">
+               <string>test2</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <spacer name="horizontalSpacer_2">
@@ -241,7 +258,7 @@
           <item row="2" column="1">
            <widget class="QLabel" name="label_status">
             <property name="text">
-             <string>TextLabel</string>
+             <string>None</string>
             </property>
            </widget>
           </item>
@@ -255,7 +272,7 @@
           <item row="3" column="1">
            <widget class="QLabel" name="label_delay">
             <property name="text">
-             <string>TextLabel</string>
+             <string>None</string>
             </property>
            </widget>
           </item>
@@ -317,19 +334,6 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6">
-         <item>
-          <widget class="QPushButton" name="pushButton_test">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>test</string>
-           </property>
-          </widget>
-         </item>
          <item>
           <widget class="QPushButton" name="pushButton_check">
            <property name="sizePolicy">
@@ -451,8 +455,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1326</width>
-     <height>22</height>
+     <width>965</width>
+     <height>28</height>
     </rect>
    </property>
   </widget>
@@ -475,12 +479,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>387</x>
-     <y>792</y>
+     <x>408</x>
+     <y>364</y>
     </hint>
     <hint type="destinationlabel">
-     <x>526</x>
-     <y>794</y>
+     <x>479</x>
+     <y>362</y>
     </hint>
    </hints>
   </connection>
@@ -491,12 +495,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1276</x>
-     <y>159</y>
+     <x>945</x>
+     <y>241</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1264</x>
-     <y>67</y>
+     <x>934</x>
+     <y>102</y>
     </hint>
    </hints>
   </connection>
@@ -507,12 +511,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1295</x>
-     <y>163</y>
+     <x>945</x>
+     <y>241</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1285</x>
-     <y>95</y>
+     <x>934</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>

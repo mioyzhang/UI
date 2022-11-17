@@ -1,3 +1,4 @@
+import json
 import socket
 import threading
 from threading import Thread
@@ -8,7 +9,7 @@ from tools import *
 
 
 class RecvThread(Thread):
-    def __init__(self, client, addr):
+    def __init__(self, client: socket.socket, addr):
         super().__init__()
         self.client = client
         self.addr = addr
@@ -24,6 +25,14 @@ class RecvThread(Thread):
                 self.client.close()
                 break
 
+            info = json.loads(content)
+            if info.get('type') == 'test':
+                print(f'{self.addr} send {content}')
+                self.client.send(content.encode())
+
+    
+    pass
+
 
 class TransferThread(QThread):
     trigger_in = pyqtSignal(dict)
@@ -35,7 +44,7 @@ class TransferThread(QThread):
         self.client = socket.socket()
         self.server = socket.socket()
 
-        self.connected = False
+        self.connected = None
         self.connections = []
 
     def recv(self, client, addr):
@@ -77,6 +86,4 @@ if __name__ == '__main__':
 
     t = TransferThread()
     t.start()
-
-    print('s')
     t.exec()

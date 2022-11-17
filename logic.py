@@ -60,12 +60,12 @@ class Message(object):
 
 
 class Packet(object):
-    def __init__(self, message, src=None, dst=None):
+    def __init__(self, message, src=None, dst=None, protocol=None):
         super().__init__()
         
         self.src = src
         self.dst = dst
-        self.protocol = None
+        self.protocol = protocol
         self.status = None
         self.recv_time = None
         self.send_time = None
