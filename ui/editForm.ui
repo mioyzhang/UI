@@ -240,6 +240,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_generate_msg">
+       <property name="text">
+        <string>生成</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_cancel">
        <property name="text">
         <string>取消</string>

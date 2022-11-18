@@ -4,7 +4,7 @@ import json
 import threading
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 from ui.edgeWindow import Ui_EdgeMainWindow
 
@@ -13,19 +13,16 @@ from logic import Logic, Message, Packet
 from transfer import TransferThread
 
 
-class SocketThread(QThread):
+class SocketThread(QObject):
     trigger_in = pyqtSignal(dict)
     trigger_out = pyqtSignal(dict)
 
-    def __init__(self, trigger):
+    def __init__(self):
         super(SocketThread, self).__init__()
         self.client = socket.socket()
         self.server = socket.socket()
         self.connected = None
         self.connections = []
-
-        self.trigger = trigger
-        self.trigger.connect(self.slot)
 
     def test(self):
         print('test')
@@ -63,13 +60,14 @@ class SocketThread(QThread):
                 'status': CONNECT_FAIL,
                 'error': str(e)
             }
+            print(e)
             self.client = socket.socket()
             return False, back
 
     def check_delay(self, address):
         status, back1 = self.connect(address)
         if status:
-            message_dict = {'type': 'test', 'time': time.time()}
+            message_dict = {'type': PACKET_TEST, 'time': time.time()}
             message = json.dumps(message_dict)
             status, back2 = self.send(message)
 
@@ -112,8 +110,28 @@ class SocketThread(QThread):
             back1['type'] = BACK_CHECK
             self.trigger_out.emit(back1)
     
-    def send_message(self, message, ):
-        pass
+    def send_packet(self, packet: Packet):
+        # print(packet)
+        # ipaddress, port = packet.dst
+        # status, back = self.connect((ipaddress, port))
+        # if not status:
+        #     back['type'] = BACK_SEND
+        #     self.trigger_out.emit(back)
+        #     return
+        
+        msg = packet.message.to_json(with_path=False)
+        print(msg)
+        status, back = self.send(msg)
+        if not status:
+            back['type'] = BACK_SEND
+            self.trigger_out.emit(back)
+            return
+        
+        files = packet.message.images + packet.message.files
+        if files:
+            pass
+
+        
 
     def slot(self, args: dict):
         print(f'Thread <-- {args}')
@@ -122,12 +140,11 @@ class SocketThread(QThread):
 
         if type_ == SIGNAL_SEND:
             dest = args.get('dest')
-            protocol = args.get('protocol')
             context = args.get('context')
 
             msg = Message(context)
             pkg = Packet(dst=dest, message=msg)
-            self.send()
+            self.send_packet(pkg)
 
         if type_ == SIGNAL_CHECK:
             address = args.get('address')
@@ -160,7 +177,7 @@ class SocketThread(QThread):
             self.client = socket.socket()
             return False, back
 
-    def run(self):
+    def run_(self):
         while True:
             time.sleep(1)
             print('.', end='')
@@ -183,7 +200,6 @@ class SocketThread(QThread):
 
 
 class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
-    main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -200,25 +216,29 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
     def init_connect(self):
 
         self.pushButton_check.clicked.connect(self.check_connect)
+
         self.pushButton_test2.clicked.connect(self.test)
 
         # self.editwidget.pushButton_submit.clicked.connect(self.send)
         self.pushButton_send.clicked.connect(self.send)
 
         self.pushButton_turn.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.editwidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
 
         # 子线程信号与槽
         # self.work_thread = SocketThread()
         # self.work_thread.trigger_in.connect(self.work_thread.slot)
         # self.work_thread.trigger_out.connect(self.slot)
         # self.work_thread.start()
-
-        self.work_thread = SocketThread(self.main_thread_trigger)
+        
+        # fixme PyQt线程科学用法
+        self.thread = QThread()
+        self.work_thread = SocketThread()
+        self.work_thread.moveToThread(self.thread)
         self.work_thread.trigger_in.connect(self.work_thread.slot)
+        self.work_thread.trigger_out.connect(self.slot)
+        self.thread.start()
 
-        self.main_thread_trigger.connect(self.slot)
-        # self.work_thread.trigger_out.connect(self.slot)
-        self.work_thread.start()
 
     def test(self):
         # print('test')
@@ -260,7 +280,11 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
 
         if type_ == BACK_SEND:
             status = args.get('status')
+
             context = args.get('context')
+            error = args.get('error')
+            QMessageBox.warning(self, "warning", f'{context}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
 
         if type_ == BACK_CHECK:
             status = args.get('status')
@@ -275,7 +299,6 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
             
             if status in [SEND_ERROR, RECV_ERROR, CONNECT_FAIL]:
                 error = args.get('error')
-
                 self.label_delay.setText('inf')
                 self.label_status.setText('disconnect')
                 self.label_status.setStyleSheet("color:red;")
@@ -297,14 +320,12 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
             'dest': (address, LISTENING_PORT),
             'protocol': protocol
         }
-        print(f'main   --> {message.to_json()}')
+        print(f'main   --> {message}')
         self.work_thread.trigger_in.emit(signal)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
     w = EdgeMainWindow()
     w.show()
-
     app.exec()

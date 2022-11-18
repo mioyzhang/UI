@@ -1,11 +1,12 @@
 import os
 import sys
+import random
 import typing
 
 from PyQt5.Qt import *
+from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QWidget
 
 import resouce_rc
 from ui.editForm import Ui_EditForm
@@ -124,6 +125,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         self.pushButton_generate.clicked.connect(self.generate_random_gps)
 
         self.pushButton_submit.clicked.connect(self.extract)
+        self.pushButton_generate_msg.clicked.connect(self.generate_msg)
 
         self.toolButton_file.clicked.connect(self.choose_file)
         self.toolButton_img.clicked.connect(self.choose_image)
@@ -158,16 +160,62 @@ class MessageEditWidget(QWidget, Ui_EditForm):
     def extract(self):
         info = {
             'sequence': self.label_seq.text(),
-            'type': self.comboBox_msg_type.currentText(),
+            'type': self.comboBox_msg_type.currentIndex(),
             'with_gps': self.radioButton_gps.isChecked(),
             'gps': self.lineEdit_gps.text(),
             'content': self.textEdit.toPlainText(),
             'files': [self.listWidget_files.item(i).text() for i in range(self.listWidget_files.count())],
             'images': [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
-
         }
         self.message = Message(info)
         print(self.message)
+
+    def clear_info(self):
+        self.label_seq.setText('')
+        self.comboBox_msg_type.setCurrentIndex(0)
+        self.radioButton_gps.setChecked(False)
+        self.lineEdit_gps.setText('')
+        self.textEdit.setPlainText(''),
+        self.listWidget_files.clear()
+        self.listWidget_images.clear()
+
+    def generate_msg(self):
+        self.clear_info()
+        import faker
+        faker = faker.Faker()
+
+        img_path = '/home/dell/workspace/UI/resource/icon'
+        imgs = os.listdir(img_path)
+        imgs = random.sample(imgs, random.randint(0, len(imgs)))
+        imgs = [os.path.join(img_path, i) for i in imgs]
+
+        file_path = '/home/dell/workspace/UI/resource/file'
+        files = os.listdir(file_path)
+        files = random.sample(files, random.randint(0, len(files)))
+        files = [os.path.join(file_path, i) for i in files]
+
+        info = {
+            'sequence': random.randint(0, 10000),
+            'type': random.randint(0, 3),
+            'with_gps': random.choice([True, False]),
+            'gps': generate_random_gps(),
+            'content': faker.text(),
+            'files': files,
+            'images': imgs
+        }
+
+        self.label_seq.setText(f"{info.get('sequence')}")
+        self.comboBox_msg_type.setCurrentIndex(info.get('type'))
+        self.radioButton_gps.setChecked(info.get('with_gps'))
+        self.lineEdit_gps.setText(f"{info.get('gps')}")
+        self.textEdit.setPlainText(info.get('content')),
+        self.listWidget_files.addItems(info.get('files'))
+        self.listWidget_images.addItems(info.get('images'))
+
+        if info.get('files'):
+            self.listWidget_files.show()
+        if info.get('images'):
+            self.listWidget_images.show()
 
 
 class TestWindow(QWidget, Ui_Form):

@@ -42,22 +42,28 @@ class Message(object):
         self.files = args.get('files')
         self.images = args.get('images')
     
-    def to_dict(self):
+    def to_dict(self, with_path=True):
+        files = self.files if with_path else [i.split('/')[-1] for i in self.files]
+        images = self.images if with_path else [i.split('/')[-1] for i in self.images]
+
         message_dict = {
             'sequence': self.sequence,
             'type': self.type,
             'content': self.content,
             'with_gps': self.with_gps,
             'gps': self.gps,
-            'files': self.files,
-            'images': self.images
+            'files': files,
+            'images': images
         }
         return message_dict
 
-    def to_json(self):
-        return json.dumps(self.to_dict())
+    def to_json(self, with_path=True):
+        return json.dumps(self.to_dict(with_path), ensure_ascii=False)
     
     def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
+    
+    def __repr__(self) -> str:
         return f'Message({self.sequence})'
 
 
@@ -87,9 +93,12 @@ class Packet(object):
         return packet_dict
 
     def to_json(self):
-        return json.dumps(self.to_dict())
-
+        return json.dumps(self.to_dict(), ensure_ascii=False)
+    
     def __str__(self) -> str:
+        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
+    
+    def __repr__(self) -> str:
         return f'Packet({self.message.sequence})'
 
 
@@ -105,3 +114,13 @@ class Logic(object):
 
     def address_in_nodes(self, address):
         return address in [i.ip_address for i in self.nodes]
+
+
+if __name__ == '__main__':
+    m = Message({})
+    print(m)
+    print([m])
+
+    p = Packet(m)
+    print(p)
+    print([p])

@@ -48,26 +48,31 @@
          <number>0</number>
         </property>
         <widget class="QWidget" name="page">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="MessageEditWidget" name="editwidget" native="true"/>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>编辑消息</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="MessageEditWidget" name="editwidget" native="true"/>
+             </item>
+            </layout>
+           </widget>
           </item>
          </layout>
         </widget>
         <widget class="QWidget" name="page_2">
-         <widget class="QPushButton" name="pushButton_turn">
-          <property name="geometry">
-           <rect>
-            <x>550</x>
-            <y>530</y>
-            <width>75</width>
-            <height>23</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>PushButton</string>
-          </property>
-         </widget>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QPushButton" name="pushButton_turn">
+            <property name="text">
+             <string>PushButton</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </widget>
       </item>
