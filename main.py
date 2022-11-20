@@ -1,116 +1,205 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-import sys
-import socket
-
 import os
 import sys
+import time
+from math import ceil
+from threading import Thread
 
 from PyQt5.QtGui import QFont, QIcon
-from PyQt5.QtCore import QThread, pyqtSignal, QSize
+from PyQt5.QtCore import QObject, QThread, pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, \
     QMainWindow, QListWidgetItem, QFileDialog, QMessageBox
 
 from ui.mainWindow import Ui_MainWindow
-from ui.editForm import Ui_EditForm
 from widgets import NodeQListWidgetItem, MessageQListWidgetItem
 
-from tools import generate_random_gps
 from logic import *
 
 
-class WorkThread(QThread):
-    child_thread_trigger = pyqtSignal(dict)
+class WorkThread(QObject):
+    trigger_start = pyqtSignal()
+    trigger_in = pyqtSignal(dict)
+    trigger_out = pyqtSignal(dict)
 
-    def __init__(self, trigger):
+    def __init__(self):
         super(WorkThread, self).__init__()
-        self.main_thread_trigger = trigger
         self.server = socket.socket()
 
-    def run(self):
+    def slot(self, args):
+        pass
 
-        # 调用 listen() 方法开始监听端口， 传入的参数指定等待连接的最大数量
-        self.server.bind(('0.0.0.0', 8900))
-        self.server.listen(32)
-
-        # todo
-        client, address = self.server.accept()
-        signal = {
-            'type': 'connect',
-            'address': address
-        }
-        self.child_thread_trigger.emit(signal)
-
+    def recv_process(self, client, addr):
         try:
             while True:
-                # 建立连接后，服务端等待客户端发送的数据，实现通信
-                content = client.recv(1024).decode('utf-8')
+                content = client.recv(BUFFER_SIZE).decode('utf-8')
+                if not content:
+                    print(f'{addr} disconnect')
+                    client.close()
+                    break
+
+                info = json.loads(content)
+                print(f'recv: {info}')
+
+                if not isinstance(info, dict):
+                    print(info)
+                    continue
+
+                type_ = info.get('type')
+                if type_ == PACKET_TEST:
+                    print(f'{addr} recv {content}')
+                    client.send(content.encode())
+
+                if type_ in [PACKET_NONE, PACKET_DETECT, PACKET_ORDER, PACKET_REPLY]:
+
+                    signal = {
+                        'type': OUT_RECV,
+                        'content': info,
+                        'ip_address': addr[0],
+                        'port': addr[1],
+                        'flow': RX,
+                        'recv_time': time.time()
+                    }
+                    self.trigger_out.emit(signal)
+
+                if type_ == PACKET_FILE:
+                    client.send('ready'.encode())
+                    file_name = info.get('file_name')
+                    file_size = info.get('file_size')
+                    file_path = os.path.join(save_path, file_name)
+                    print(f'recv {file_name} {file_size} byte')
+
+                    with open(file_path, 'wb') as f:
+                        for i in range(ceil(file_size / BUFFER_SIZE)):
+                            bytes_read = client.recv(BUFFER_SIZE)
+                            if not bytes_read:
+                                break
+                            f.write(bytes_read)
+
+                    print(f'recv {file_name}')
+                    client.send('finish'.encode())
+        except BaseException as e:
+            print(e)
+            raise e
+
+    def accept(self):
+        try:
+            self.server.bind(('0.0.0.0', LISTENING_PORT))
+            self.server.listen(32)
+            print(f'Listening on port {LISTENING_PORT}')
+
+            signal = {
+                'type': OUT_INFO,
+                'status': INIT_SUCCESS,
+                'port': LISTENING_PORT
+            }
+            self.trigger_out.emit(signal)
+
+            # todo
+
+            self.server.settimeout(None)
+            while True:
+                client, address = self.server.accept()
+                client.settimeout(None)
+                print(f'recv connect from {address}')
                 signal = {
-                    'type': 'message',
-                    'address': address,
-                    'content': content
+                    'type': OUT_INFO,
+                    'status': RECV_CONNECTION,
+                    'ip_address': address[0],
+                    'port': address[1],
                 }
-                self.child_thread_trigger.emit(signal)
+                self.trigger_out.emit(signal)
+                # self.recv_process(client, address)
+                t = Thread(target=self.recv_process, args=(client, address))
+                t.start()
+                t.join()
+
         except BaseException as e:
             signal = {
-                'type': 'error',
-                'content': e
+                'type': OUT_ERROR,
+                'error': e
             }
-            print(e)
-            self.child_thread_trigger.emit(signal)
+            self.trigger_out.emit(signal)
+            raise e
 
         finally:
-            client.close()
             self.server.close()
 
 
-class MainWindow(QMainWindow, Ui_MainWindow, Logic):
+class MainWindow(QMainWindow, Ui_MainWindow):
     main_thread_trigger = pyqtSignal(str)
 
     def __init__(self):
-        QMainWindow.__init__(self)
-        Logic.__init__(self)
+        super(MainWindow, self).__init__()
 
-        self.child_thread = None
-        self.edit_widget = None
+        self.nodes = []
+        self.messages = []
+        self.packets = []
+
+        self.thread = None
+        self.work_thread = None
         self.setupUi(self)
 
-        # self.listWidget_files.hide()
-        # self.listWidget_images.hide()
-        self.listWidget_files.setHidden(True)
-        self.listWidget_images.setHidden(True)
-
         self.init_cnt()
-        self.execute()
-
-    def execute(self):
-        self.child_thread = WorkThread(self.main_thread_trigger)
-        self.child_thread.start()
-        # 线程自定义信号连接的槽函数
-        self.child_thread.child_thread_trigger.connect(self.message_process)
 
     def init_cnt(self):
         self.listWidget.currentRowChanged.connect(lambda x: self.stackedWidget.setCurrentIndex(x))
 
         # self.action_2.triggered.connect(self.show_edit_widget)
-        self.pushButton_reply.clicked.connect(self.turn_edit_widget)
-        self.pushButton_cancel.clicked.connect(self.turn_view_widget)
+        # self.pushButton_reply.clicked.connect(self.turn_edit_widget)
+        self.viewwidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
 
-        # listWidget双击删除
-        self.listWidget_files.itemDoubleClicked['QListWidgetItem*'].connect(
-            lambda: self.listWidget_files.takeItem(self.listWidget_files.currentRow()))
-        self.listWidget_images.itemDoubleClicked['QListWidgetItem*'].connect(
-            lambda: self.listWidget_images.takeItem(self.listWidget_images.currentRow()))
-
-        self.toolButton_file.clicked.connect(self.choose_file)
-        self.toolButton_img.clicked.connect(self.choose_image)
-
-        self.pushButton_p1_test.clicked.connect(self.p1_test)
+        self.pushButton_test2.clicked.connect(self.p1_test)
         self.pushButton_3.clicked.connect(self.p2_test)
 
         self.listWidget_nodes.currentItemChanged.connect(self.node_info_view)
         self.listWidget_messages.currentItemChanged.connect(self.message_info_view)
-    
+
+        # 子线程初始化
+        self.thread = QThread()
+        self.work_thread = WorkThread()
+        self.work_thread.moveToThread(self.thread)
+
+        self.work_thread.trigger_start.connect(self.work_thread.accept)
+        self.work_thread.trigger_in.connect(self.work_thread.slot)
+        self.work_thread.trigger_out.connect(self.slot)
+
+        self.thread.start()
+        self.work_thread.trigger_start.emit()
+
+    def slot(self, args) -> None:
+        print(f'main <-- {args}')
+        type_ = args.get('type')
+        status = args.get('status')
+
+        if type_ == OUT_ERROR:
+            error = args.get('error')
+            QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No,
+                                QMessageBox.Yes)
+
+        if type_ == OUT_INFO:
+            if status == INIT_SUCCESS:
+                port = args.get('port')
+                self.statusBar().showMessage(f'Listening on port {port}')
+
+            if status == RECV_CONNECTION:
+                label = args.get('label') if args.get('label') else args.get('ip_address')
+                ip_address = args.get('ip_address')
+                port = args.get('port')
+                node = Node(label=label, ip_address=ip_address, port=port)
+                self.add_node(node)
+
+        if type_ == OUT_RECV:
+            ip_address = args.get('ip_address')
+            port = args.get('port')
+            content = args.get('content')
+            recv_time = args.get('recv_time')
+            message = Message(content)
+            packet = Packet(src=(ip_address, port), message=message, recv_time=recv_time)
+            self.add_packet(packet)
+
+        pass
+
     def p1_test(self):
 
         message = {
@@ -119,31 +208,44 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         }
         m = Message(args=message)
         p = Packet(message=m, src='192.168.0.156')
-        print(m)
-        print(p)
 
         item = MessageQListWidgetItem(p)
         self.listWidget_messages.addItem(item)
         self.listWidget_messages.setItemWidget(item, item.widget)
 
     def p2_test(self):
-        new_node = Node(label='s1', ip_address='10.0.0.1')
+        new_node = Node(label='s1', ip_address='10.0.0.1', port=1234)
         self.add_node(new_node)
 
-        item = NodeQListWidgetItem(new_node)
-        item.setSizeHint(QSize(item.sizeHint().width(), 43))
+    def add_node(self, node: Node):
+        if node in self.nodes:
+            return
 
+        self.nodes.append(Node)
+        item = NodeQListWidgetItem(node)
+        item.setSizeHint(QSize(item.sizeHint().width(), 43))
         self.listWidget_nodes.addItem(item)
         self.listWidget_nodes.setItemWidget(item, item.widget)
 
-    def message_info_view(self, *args):
-        packet = args[0].packet
+    def add_packet(self, packet):
+        print(f'add {packet}')
+        if packet in self.packets:
+            return
+        self.packets.append(packet)
+        item = MessageQListWidgetItem(packet)
+        self.listWidget_messages.addItem(item)
+        self.listWidget_messages.setItemWidget(item, item.widget)
 
-        self.label_src.setText(packet.src)
-        self.label_dst.setText(packet.dst)
-        self.label_protocol.setText(packet.protocol)
-        self.label_recv_time.setText(packet.recv_time)
-        self.label_gps.setText(packet.message.gps)
+    def message_info_view(self, *args):
+        self.stackedWidget_message.setCurrentIndex(0)
+        packet = args[0].packet
+        self.viewwidget.display(packet.message)
+
+        self.label_src.setText(f'{packet.src}')
+        self.label_dst.setText(f'{packet.dst}')
+        self.label_protocol.setText(f'{packet.protocol}')
+        self.label_recv_time.setText(f'{packet.recv_time}')
+        self.label_gps.setText(f'{packet.message.gps}')
 
     def node_info_view(self, *args):
         node = args[0].node
@@ -152,24 +254,6 @@ class MainWindow(QMainWindow, Ui_MainWindow, Logic):
         self.label_33.setText(node.type)
         self.label_35.setText(node.last_seen)
         self.label_37.setText(node.last_gps)
-
-    def choose_file(self):
-        file_filter = "All Files(*);;Text Files(*.txt)"
-        filename = QFileDialog.getOpenFileNames(self, '选择文件', os.getcwd(), file_filter)
-        filename = filename[0]
-        self.listWidget_files.show()
-        for i in filename:
-            self.listWidget_files.addItem(i)
-        print(filename)
-
-    def choose_image(self):
-        image_filter = "Image files (*.jpg *.png);;All Files(*)"
-        imagename = QFileDialog.getOpenFileNames(self, '选择图像', os.getcwd(), image_filter)
-        imagename = imagename[0]
-        self.listWidget_images.show()
-        for i in imagename:
-            self.listWidget_images.addItem(i)
-        print(imagename)
 
     def turn_view_widget(self):
         self.stackedWidget_message.setCurrentIndex(0)

@@ -27,9 +27,21 @@ PACKET_REPLY = 3
 PACKET_FILE = 7
 PACKET_TEST = 8
 
+OUT_ERROR = 12
+OUT_INFO = 13
+OUT_RECV = 14
 
+INIT_SUCCESS = 14
+RECV_CONNECTION = 11
+
+RX = 0
+TX = 1
 TIMEOUT = 3
 LISTENING_PORT = 8900
+
+BUFFER_SIZE = 2048 * 10
+
+save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
 socket.setdefaulttimeout(TIMEOUT)

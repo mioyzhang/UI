@@ -19,7 +19,8 @@ except BaseException as e:
 #     msg = input('send:')
 #     s.send(msg.encode())
 
-file = '/home/dell/workspace/UI/resource/file/1.txt'
+
+file = 'D:/Develop/PycharmProjects/UI/resource/file/1.txt'
 
 m = {
     'type': PACKET_FILE,
@@ -27,17 +28,21 @@ m = {
     'file_size': os.path.getsize(file)
 }
 m = json.dumps(m)
-print(m)
 
-s.send(m.encode())
+# s.send(m.encode())
+# print(f'send {m}')
+# r = s.recv(2048)
+# print(r)
+# r = s.recv(2048)
+# print(r)
 
-with open(file,'rb') as f :
-    # 读取文件
-    while True:
-        bytes_read = f.read(Buffersize)
-        if not bytes_read:
-            break
-        # sendall 确保网络忙碌的时候，数据仍然可以传输
-        s.sendall(bytes_read)
-        
-s.close()
+# with open(file, 'rb') as f:
+#     # 读取文件
+#     while True:
+#         bytes_read = f.read(Buffersize)
+#         if not bytes_read:
+#             break
+#         # sendall 确保网络忙碌的时候，数据仍然可以传输
+#         s.sendall(bytes_read)
+#
+# s.close()

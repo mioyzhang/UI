@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -9,7 +10,7 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from ui.edgeWindow import Ui_EdgeMainWindow
 
 from tools import *
-from logic import Logic, Message, Packet
+from logic import Message, Packet
 from transfer import TransferThread
 
 
@@ -61,6 +62,7 @@ class SocketThread(QObject):
                 'error': str(e)
             }
             print(e)
+            self.connected = None
             self.client = socket.socket()
             return False, back
 
@@ -79,9 +81,6 @@ class SocketThread(QObject):
                     past_time = recv.get('time')
                     time.sleep(0.1)
                     delay = time.time() - past_time
-
-                    print(past_time)
-                    print(time.time())
 
                     back = {
                         'type': BACK_CHECK,
@@ -102,6 +101,8 @@ class SocketThread(QObject):
                         'status': RECV_ERROR,
                         'error': e
                     }
+                    self.connected = None
+                    self.client = socket.socket()
                     self.trigger_out.emit(back)
             else:
                 back2['type'] = BACK_CHECK
@@ -111,13 +112,13 @@ class SocketThread(QObject):
             self.trigger_out.emit(back1)
     
     def send_packet(self, packet: Packet):
-        # print(packet)
-        # ipaddress, port = packet.dst
-        # status, back = self.connect((ipaddress, port))
-        # if not status:
-        #     back['type'] = BACK_SEND
-        #     self.trigger_out.emit(back)
-        #     return
+        print(f'try to send {packet}')
+        ipaddress, port = packet.dst
+        status, back = self.connect((ipaddress, port))
+        if not status:
+            back['type'] = BACK_SEND
+            self.trigger_out.emit(back)
+            return
         
         msg = packet.message.to_json(with_path=False)
         print(msg)
@@ -125,24 +126,27 @@ class SocketThread(QObject):
         if not status:
             back['type'] = BACK_SEND
             self.trigger_out.emit(back)
-            return
+            return False
         
-        files = packet.message.images + packet.message.files
-        if files:
-            pass
-
-        
+        # files = packet.message.images + packet.message.files
+        # for i in files:
+        #     status, back = self.send_file(i)
+        #     if not status:
+        #         back['type'] = BACK_SEND
+        #         self.trigger_out.emit(back)
+        #         return False
+        print(f'send')
 
     def slot(self, args: dict):
         print(f'Thread <-- {args}')
         type_ = args.get('type')
-        context = args.get('context')
+        content = args.get('content')
 
         if type_ == SIGNAL_SEND:
             dest = args.get('dest')
-            context = args.get('context')
+            content = args.get('content')
 
-            msg = Message(context)
+            msg = Message(content)
             pkg = Packet(dst=dest, message=msg)
             self.send_packet(pkg)
 
@@ -155,6 +159,51 @@ class SocketThread(QObject):
                 print(i)
                 time.sleep(1)
 
+    def send_file(self, file):
+        file_name = os.path.basename(file)
+        file_size = os.path.getsize(file)
+        msg = {
+            'type': PACKET_FILE,
+            'file_name': file_name,
+            'file_size': file_size
+        }
+
+        print(f'send {file_name} {file_size} byte to {self.connected}')
+
+        try:
+            self.client.send(json.dumps(msg).encode())
+            r = self.client.recv(2048)
+            if not r:
+                raise ConnectionError('server not ready')
+
+            with open(file, 'rb') as f:
+                while True:
+                    bytes_read = f.read(BUFFER_SIZE)
+                    if not bytes_read:
+                        break
+                    self.client.sendall(bytes_read)
+            print(f'send {file_name} success')
+
+            r = self.client.recv(2048)
+            if not r:
+                raise ConnectionError('server not ready')
+
+            return True, None
+
+        except BaseException as e:
+            back = {
+                'status': SEND_ERROR,
+                'content': file_name,
+                'error': str(e)
+            }
+            print(f'send {file_name} fail')
+            print(e)
+
+            self.client.close()
+            self.client = socket.socket()
+            self.connected = None
+            return False, back
+
     def send(self, message):
         print(f'send {message} to {self.connected}')
 
@@ -162,19 +211,20 @@ class SocketThread(QObject):
             self.client.send(message.encode())
             back = {
                 'status': SEND_SUCCESS,
-                'context': message
+                'content': message
             }
             return True, back
         except BaseException as e:
             back = {
                 'status': SEND_ERROR,
-                'context': message,
+                'content': message,
                 'error': str(e)
             }
             print(f'fail send {message} to {self.connected}')
 
             self.client.close()
             self.client = socket.socket()
+            self.connected = None
             return False, back
 
     def run_(self):
@@ -204,6 +254,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.thread = None
         self.work_thread = None
         self.sequence = 0
 
@@ -238,7 +289,6 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.work_thread.trigger_in.connect(self.work_thread.slot)
         self.work_thread.trigger_out.connect(self.slot)
         self.thread.start()
-
 
     def test(self):
         # print('test')
@@ -281,10 +331,9 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         if type_ == BACK_SEND:
             status = args.get('status')
 
-            context = args.get('context')
+            content = args.get('content')
             error = args.get('error')
-            QMessageBox.warning(self, "warning", f'{context}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-
+            QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if type_ == BACK_CHECK:
             status = args.get('status')
@@ -316,7 +365,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
 
         signal = {
             'type': SIGNAL_SEND,
-            'context': message.to_json(),
+            'content': message.to_json(),
             'dest': (address, LISTENING_PORT),
             'protocol': protocol
         }

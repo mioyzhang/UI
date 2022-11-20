@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import *
 
 import resouce_rc
 from ui.editForm import Ui_EditForm
+from ui.viewForm import Ui_ViewForm
 from ui.testWidgets import Ui_Form
 
 from tools import generate_random_gps
@@ -58,7 +59,7 @@ class NodeQListWidgetItem(QListWidgetItem):
         self.horizontalLayout_2.addItem(spacerItem3)
 
         self.label_2.setText(self.node.label)
-        self.label_3.setText(self.node.ip_address)
+        self.label_3.setText(f'{self.node.ip_address}:{self.node.port}')
         self.pushButton.setText("测试连接")
         self.pushButton_2.setText("发送消息")
 
@@ -100,11 +101,10 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.horizontalLayout.addItem(spacerItem1)
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-        self.label_2.setText(self.packet.src)
-        self.label_3.setText(str(self.packet.message))
+        self.label_2.setText(f'{self.packet.src}')
+        self.label_3.setText(self.packet.message.summary())
 
         # self.widget.setMaximumHeight(81)
-
         self.setSizeHint(self.widget.sizeHint())
 
 
@@ -184,12 +184,14 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         import faker
         faker = faker.Faker()
 
-        img_path = '/home/dell/workspace/UI/resource/icon'
+        # img_path = '/home/dell/workspace/UI/resource/icon'
+        img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
         imgs = os.listdir(img_path)
         imgs = random.sample(imgs, random.randint(0, len(imgs)))
         imgs = [os.path.join(img_path, i) for i in imgs]
 
         file_path = '/home/dell/workspace/UI/resource/file'
+        file_path = 'D:/Develop/PycharmProjects/UI/resource/file'
         files = os.listdir(file_path)
         files = random.sample(files, random.randint(0, len(files)))
         files = [os.path.join(file_path, i) for i in files]
@@ -218,6 +220,60 @@ class MessageEditWidget(QWidget, Ui_EditForm):
             self.listWidget_images.show()
 
 
+class MessageViewWidget(QWidget, Ui_ViewForm):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setupUi(self)
+        self.scrollArea.hide()
+        # self.show_img()
+        self.layout = QVBoxLayout(self.scrollAreaWidgetContents)
+        self.pushButton_test1.clicked.connect(self.test)
+        self.pushButton_test2.clicked.connect(self.clear)
+
+    def clear(self):
+        self.label_seq.clear()
+        self.label_type.clear()
+        self.label_gps.clear()
+        self.textBrowser.clear()
+        for i in range(self.layout.count()):
+            self.layout.itemAt(i).widget().deleteLater()
+
+    def display(self, message):
+        self.clear()
+        self.label_seq.setText(f'{message.sequence}')
+        self.label_type.setText(f'{message.type}')
+        self.label_gps.setText(f'{message.gps}')
+        self.textBrowser.setPlainText(f'{message.content}')
+        images = message.images
+        save_path = 'D:/Develop/PycharmProjects/UI/resource'
+        if images:
+            self.scrollArea.show()
+            for i in images:
+                img_path = os.path.join(save_path, i)
+                label = QLabel(self.scrollAreaWidgetContents)
+                label.setPixmap(QPixmap(img_path))
+                self.layout.addWidget(label)
+
+    def test(self):
+        message = {
+            'sequence': 'l-232',
+            'content': 'Hello world'
+        }
+        m = Message(args=message)
+        p = Packet(message=m, src='192.168.0.156')
+        self.display(m)
+
+    def show_img(self):
+        img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
+        imgs = [os.path.join(img_path, i) for i in os.listdir(img_path)]
+
+        verticalLayout_images = QVBoxLayout(self.scrollAreaWidgetContents)
+        for i in imgs:
+            label = QLabel(self.scrollAreaWidgetContents)
+            label.setPixmap(QPixmap(i))
+            verticalLayout_images.addWidget(label)
+
+
 class TestWindow(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
@@ -236,7 +292,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     # w = TestWindow()
-    w = MessageEditWidget()
+    # w = MessageEditWidget()
+    w = MessageViewWidget()
     w.show()
 
     app.exec()

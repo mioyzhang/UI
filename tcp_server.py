@@ -2,6 +2,7 @@ import os
 import json
 import socket
 import threading
+from math import ceil
 from threading import Thread
 
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -24,9 +25,9 @@ class RecvThread(Thread):
                     print(f'{self.addr} disconnect')
                     self.client.close()
                     break
-                
+
                 info = json.loads(content)
-                print(info)
+                print(f'recv: {info}')
 
                 if not isinstance(info, dict):
                     print(info)
@@ -38,21 +39,26 @@ class RecvThread(Thread):
                     self.client.send(content.encode())
                 
                 if type_ == PACKET_FILE:
+
+                    self.client.send('ready'.encode())
+
                     file_name = info.get('file_name')
                     file_size = info.get('file_size')
-                    print(f'recv {file_name} {file_size}byte')
                     file_path = os.path.join(save_path, file_name)
+                    print(f'recv {file_name} {file_size} byte')
                     
-                    with open(file_path, 'rb') as f:
+                    with open(file_path, 'wb') as f:
+                        for i in range(ceil(file_size / Buffersize)):
+                            bytes_read = self.client.recv(Buffersize)
+                            if not bytes_read:
+                                break
+                            f.write(bytes_read)
 
-                        bytes_read = self.client.recv(Buffersize)
-                        # 如果没有数据传输内容
-                        if not bytes_read:
-                            break
-                        # 读取写入
-                        f.write(bytes_read)
-                        # 更新进度条
-                        progress.update(len(bytes_read))
+                    print(f'recv {file_name}')
+                    self.client.send('finish'.encode())
+            except BaseException as e:
+                print(e)
+                raise e
 
 
 def r():
@@ -71,5 +77,6 @@ def r():
 
 if __name__ == '__main__':
     Buffersize = 4096*10
-    save_path = '/home/dell/workspace/tmp'
+    # save_path = '/home/dell/workspace/tmp'
+    save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
     r()

@@ -1,0 +1,28 @@
+import socket  # 导入 socket 模块
+import json
+
+from tools import *
+
+s = socket.socket()  # 创建 socket 对象
+host = socket.gethostname()  # 获取本地主机名
+port = 8900  # 设置端口号
+
+try:
+    # s.connect((host, port))
+    s.connect(('127.0.0.1', port))
+except BaseException as e:
+    raise e
+
+# while True:
+#     msg = input('send:')
+#     s.send(msg.encode())
+
+m = {
+    'type': PACKET_FILE,
+    'file_name': '1.txt'
+}
+m = json.dumps(m)
+print(m)
+
+s.send(m.encode())
+

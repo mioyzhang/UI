@@ -1,3 +1,4 @@
 .idea
 .pylintrc
 __pycache__
+/resource/tmp/
