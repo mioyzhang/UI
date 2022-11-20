@@ -1,18 +1,17 @@
 import os
 import json
 import time
-import threading
 from math import ceil
 from retrying import retry
 from threading import Thread
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal
 
 from tools import *
 from logic import Packet, Message
 
 
-class TransferThread(QThread):
+class TransferThread(QObject):
     trigger_start = pyqtSignal()
     trigger_in = pyqtSignal(dict)
     trigger_out = pyqtSignal(dict)
@@ -56,13 +55,15 @@ class TransferThread(QThread):
         :param address:
         :return:
         """
-        if self.connected and self.connected != address:
-            print(f'disconnect {self.connected}')
-            self.re_client()
-
         try:
-            self.client.connect(address)
-            self.connected = address
+            if self.connected and self.connected != address:
+                print(f'disconnect {self.connected}')
+                self.re_client()
+
+            if not self.connected:
+                self.client.connect(address)
+                self.connected = address
+                print(f'connect to {self.connected}')
 
             test_msg = {
                 'type': PACKET_TEST,
@@ -85,7 +86,7 @@ class TransferThread(QThread):
                         'address': address,
                         'delay': delay,
                     }
-                    print(f'connect to {self.connected} delay {delay}ms')
+                    print(f'connect to {self.connected} delay {delay}s')
                     return True, back
             raise ConnectionError('connection error')
 
@@ -258,12 +259,13 @@ class TransferThread(QThread):
 
                 type_ = info.get('type')
                 if type_ == PACKET_TEST:
-                    print('recv test packet')
+                    print(f'recv test packet {addr}')
                     info['hostname'] = HostName
-                    client.send(json.loads(info).encode())
+                    client.send(json.dumps(info).encode())
+                    print(f'send {info} back')
 
                     signal = {
-                        'type': OUT_RECV,
+                        'type': OUT_INFO,
                         'status': TEST_DELAY,
                         'hostname': info.get('hostname'),
                         'ip_address': addr[0],

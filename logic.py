@@ -18,7 +18,10 @@ class Node(object):
         self.last_gps = None
 
     def __str__(self):
-        return f'Node({self.label}:{self.port})'
+        return f'Node({self.ip_address}:{self.port})'
+
+    def __repr__(self):
+        return f'Node({self.ip_address}:{self.port})'
 
     def __hash__(self) -> int:
         return hash(self.ip_address) ^ hash(self.port)

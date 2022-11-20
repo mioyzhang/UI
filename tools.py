@@ -2,7 +2,7 @@ import random
 import math
 import socket
 
-
+# type
 SIGNAL_TEST = 0
 SIGNAL_CHECK = 1
 SIGNAL_SEND = 2
@@ -12,6 +12,7 @@ OUT_SEND = 4
 OUT_RECV = 5
 OUT_ERROR = 15
 
+# status
 CONNECT_FAIL = 6
 TEST_DELAY = 7
 
