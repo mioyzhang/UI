@@ -83,7 +83,7 @@ class SocketThread(QObject):
                     delay = time.time() - past_time
 
                     back = {
-                        'type': BACK_CHECK,
+                        'type': OUT_INFO,
                         'status': CONNECT_SUCCESS,
                         'delay': delay
                     }
@@ -97,7 +97,7 @@ class SocketThread(QObject):
 
                 except BaseException as e:
                     back = {
-                        'type': BACK_CHECK,
+                        'type': OUT_INFO,
                         'status': RECV_ERROR,
                         'error': e
                     }
@@ -105,10 +105,10 @@ class SocketThread(QObject):
                     self.client = socket.socket()
                     self.trigger_out.emit(back)
             else:
-                back2['type'] = BACK_CHECK
+                back2['type'] = OUT_INFO
                 self.trigger_out.emit(back2)
         else:
-            back1['type'] = BACK_CHECK
+            back1['type'] = OUT_INFO
             self.trigger_out.emit(back1)
     
     def send_packet(self, packet: Packet):
@@ -116,7 +116,7 @@ class SocketThread(QObject):
         ipaddress, port = packet.dst
         status, back = self.connect((ipaddress, port))
         if not status:
-            back['type'] = BACK_SEND
+            back['type'] = OUT_SEND
             self.trigger_out.emit(back)
             return
         
@@ -124,7 +124,7 @@ class SocketThread(QObject):
         print(msg)
         status, back = self.send(msg)
         if not status:
-            back['type'] = BACK_SEND
+            back['type'] = OUT_SEND
             self.trigger_out.emit(back)
             return False
         
@@ -328,14 +328,14 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         print(f'main   <-- {args}')
         type_ = args.get('type')
 
-        if type_ == BACK_SEND:
+        if type_ == OUT_SEND:
             status = args.get('status')
 
             content = args.get('content')
             error = args.get('error')
             QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
-        if type_ == BACK_CHECK:
+        if type_ == OUT_INFO:
             status = args.get('status')
 
             if status == PORT_MODIFY:
