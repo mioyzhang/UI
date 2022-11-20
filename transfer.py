@@ -1,5 +1,6 @@
 import os
 import json
+import socket
 import time
 from math import ceil
 from retrying import retry
@@ -19,223 +20,98 @@ class TransferThread(QObject):
     def __init__(self):
         super(TransferThread, self).__init__()
 
-        self.client = socket.socket()
-        self.server = socket.socket()
+        self.udp_port = None
+        self.tcp_port = None
+        self.tcpServer = socket.socket()
+        self.tcpClient = socket.socket()
+        self.udpReceiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udpSender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        self.connected = None
-        self.connections = []
+    def send_packet(self, packet: Packet, address):
+        self.tcp_port = get_port()
+        thread = Thread(target=self.tcp_transfer, args=(self.tcp_port, packet.message))
+        thread.start()
 
-    def slot(self, args: dict):
-        type_ = args.get('type')
-        print(f'Thread <-- signal {type_}')
+        message = {
+            'type': PACKET_LINK,
+            'protocol': 'TCP',
+            'port': self.tcp_port
+        }
+        self.udpSender.sendto(json.dumps(message).encode(), address)
 
-        if type_ == SIGNAL_SEND:
-            dest = args.get('dest')
-            content = args.get('content')
+        recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
+        info = json.loads(recvData.decode())
+        print(f'recv {info}')
 
-            msg = Message(content)
-            pkg = Packet(dst=dest, message=msg)
-            self.send_packet(pkg)
+        if info.get('status'):
+            print('ready')
 
-        if type_ == SIGNAL_CHECK:
-            address = args.get('address')
-            self.check_delay(address)
+    def tcp_transfer(self, port, message: Message):
+        server = socket.socket()
+        server.bind(('0.0.0.0', port))
+        print(f'tcp listen on port {port}')
+        server.listen(5)
+        client, address = server.accept()
 
-        if type_ == SIGNAL_TEST:
-            print('SIGNAL_TEST')
+        msg = message.to_json(with_path=False)
+        client.send(msg.encode())
 
-    def re_client(self):
-        self.client.close()
-        self.client = socket.socket()
-        self.connected = None
+        files = message.images + message.files
+        for i in files:
+            self.send_file(i)
 
-    def connect(self, address):
-        """
-        尝试连接到服务端
-        :param address:
-        :return:
-        """
+    def send_file(self):
+        pass
+
+    def test_connect(self, address):
         try:
-            if self.connected and self.connected != address:
-                print(f'disconnect {self.connected}')
-                self.re_client()
-
-            if not self.connected:
-                self.client.connect(address)
-                self.connected = address
-                print(f'connect to {self.connected}')
-
             test_msg = {
                 'type': PACKET_TEST,
                 'time': time.time(),
                 'hostname': HostName
             }
             message = json.dumps(test_msg)
-            status, back = self.send(message)
+            self.udpSender.sendto(message.encode(), address)
+            recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
 
-            if status:
-                status, back = self.recv()
-                type_ = back.get('type')
-                if status and type_ == PACKET_TEST:
-                    past_time = back.get('time')
-                    hostname = back.get('hostname')
-                    delay = time.time() - past_time
-                    back = {
-                        'status': TEST_DELAY,
-                        'hostname': hostname,
-                        'address': address,
-                        'delay': delay,
-                    }
-                    print(f'connect to {self.connected} delay {delay}s')
-                    return True, back
-            raise ConnectionError('connection error')
+            back = json.loads(recvData.decode())
+            type_ = back.get('type')
+
+            if type_ == PACKET_TEST:
+                past_time = back.get('time')
+                hostname = back.get('hostname')
+                delay = time.time() - past_time
+                back = {
+                    'type': OUT_INFO,
+                    'status': TEST_DELAY,
+                    'hostname': hostname,
+                    'address': address,
+                    'delay': delay,
+                }
+                print(f'connect to {addr} delay {delay}s')
+                return True, back
+            else:
+                raise ConnectionError('ConnectionError')
 
         except BaseException as e:
             back = {
+                'type': OUT_ERROR,
                 'status': CONNECT_FAIL,
                 'error': str(e)
             }
             print(e)
-            self.re_client()
             return False, back
 
-    def check_delay(self, address):
-        status, back = self.connect(address)
-        if status:
-            back['type'] = OUT_INFO
-            self.trigger_out.emit(back)
-        else:
-            back['type'] = OUT_ERROR
-            self.trigger_out.emit(back)
-
-    def send_packet(self, packet: Packet):
-        print(f'try to send {packet}')
-        ipaddress, port = packet.dst
-        status, back = self.connect((ipaddress, port))
-        if not status:
-            back['type'] = OUT_ERROR
-            self.trigger_out.emit(back)
-            return False
-
-        msg = packet.message.to_json(with_path=False)
-        status, back = self.send(msg)
-        if not status:
-            back['type'] = OUT_ERROR
-            self.trigger_out.emit(back)
-            return False
-
-        files = packet.message.images + packet.message.files
-        for i in files:
-            status, back = self.send_file(i)
-            if not status:
-                back['type'] = OUT_SEND
-                self.trigger_out.emit(back)
-                return False
-        print(f'send {packet} success')
-
-    def send(self, message):
+    def udp_recv(self):
         try:
-            self.client.send(message.encode())
-            back = {
-                'status': SEND_SUCCESS,
-                'content': message
-            }
-            print(f'send {message} to {self.connected}')
-            return True, back
-        except BaseException as e:
-            back = {
-                'status': SEND_ERROR,
-                'content': message,
-                'error': str(e)
-            }
-            print(f'send {message} to {self.connected} fail')
-            self.re_client()
-            return False, back
-
-    def send_file(self, file):
-        file_name = os.path.basename(file)
-        file_size = os.path.getsize(file)
-        msg = {
-            'type': PACKET_FILE,
-            'file_name': file_name,
-            'file_size': file_size
-        }
-
-        print(f'send {file_name} {file_size} byte to {self.connected}')
-
-        try:
-            self.client.send(json.dumps(msg).encode())
-            r = self.client.recv(2048)
-            if not r:
-                raise ConnectionError('server not ready')
-
-            with open(file, 'rb') as f:
-                while True:
-                    bytes_read = f.read(BUFFER_SIZE)
-                    if not bytes_read:
-                        break
-                    self.client.sendall(bytes_read)
-
-            r = self.client.recv(2048)
-            if not r:
-                raise ConnectionError('send fail')
-            print(f'send {file_name} success')
-
-            return True, None
-
-        except BaseException as e:
-            back = {
-                'status': SEND_ERROR,
-                'content': f'Failed to send {file_name}',
-                'error': str(e)
-            }
-            print(f'Failed to send {file_name}')
-            print(e)
-            self.re_client()
-            return False, back
-
-    def recv(self):
-        try:
-            message = self.client.recv(2048).decode()
-            message = json.loads(message)
-            return True, message
-        except BaseException as e:
-            back = {
-                'status': RECV_ERROR,
-                'error': e
-            }
-            self.re_client()
-            return False, back
-
-    def accept(self):
-        try:
-            self.server.bind(('0.0.0.0', LISTENING_PORT))
-            self.server.listen(32)
-            print(f'Listening on port {LISTENING_PORT}')
-
-            signal = {
-                'type': OUT_INFO,
-                'status': INIT_SUCCESS,
-                'port': LISTENING_PORT
-            }
-            self.trigger_out.emit(signal)
-
-            # to be processed
-            self.server.settimeout(None)
+            self.udpReceiver = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.udpReceiver.bind(('0.0.0.0', LISTENING_PORT))
+            print(f'UDP listen on port {LISTENING_PORT}')
             while True:
-                client, address = self.server.accept()
-                client.settimeout(None)
-                print(f'connect from {address}')
-                signal = {
-                    'type': OUT_INFO,
-                    'status': RECV_CONNECTION,
-                    'ip_address': address[0],
-                    'port': address[1],
-                }
-                self.trigger_out.emit(signal)
-                thread = Thread(target=self.recv_process, args=(client, address))
-                thread.start()
-                thread.join()
+                recData, addr = self.udpReceiver.recvfrom(BUFFER_SIZE)
+                recData = json.loads(recData)
+                print(f'recv {addr} {recData}')
+                self.process(recData, addr)
 
         except BaseException as e:
             signal = {
@@ -245,85 +121,66 @@ class TransferThread(QObject):
             self.trigger_out.emit(signal)
             raise e
 
-        finally:
-            self.server.close()
+    def process(self, info, addr):
+        type_ = info.get('type')
+        if type_ == PACKET_TEST:
+            print(f'recv test packet {addr}')
+            info['hostname'] = HostName
+            self.udpReceiver.sendto(json.dumps(info).encode(), addr)
+            print(f'send {info} back\n')
 
-    def recv_process(self, client, addr):
-        try:
-            while True:
-                content = client.recv(BUFFER_SIZE).decode('utf-8')
-                if not content:
-                    raise ConnectionError('recv wrong buf')
+            signal = {
+                'type': OUT_INFO,
+                'status': TEST_DELAY,
+                'hostname': info.get('hostname'),
+                'ip_address': addr[0],
+                'port': addr[1],
+                'recv_time': time.time(),
+            }
+            self.trigger_out.emit(signal)
 
-                info = json.loads(content)
+        if type_ == PACKET_LINK:
+            print(f'recv connection request from {addr}')
+            ip = addr[0]
+            port = info.get('port')
+            back = {
+                'type': PACKET_LINK,
+                'status': True
+            }
+            print(f'try to connect to {ip}:{port}')
+            self.tcpClient.connect((ip, port))
 
-                type_ = info.get('type')
-                if type_ == PACKET_TEST:
-                    print(f'recv test packet {addr}')
-                    info['hostname'] = HostName
-                    client.send(json.dumps(info).encode())
-                    print(f'send {info} back')
+            self.udpReceiver.sendto(json.dumps(back).encode(), addr)
+            print('connect success')
 
-                    signal = {
-                        'type': OUT_INFO,
-                        'status': TEST_DELAY,
-                        'hostname': info.get('hostname'),
-                        'ip_address': addr[0],
-                        'port': addr[1],
-                        'recv_time': time.time(),
-                    }
-                    self.trigger_out.emit(signal)
+        if type_ in [PACKET_NONE, PACKET_DETECT, PACKET_ORDER, PACKET_REPLY]:
+            print(f'recv message type {type_}')
+            signal = {
+                'type': OUT_RECV,
+                'status': RECV_MESSAGE,
+                'content': info,
+                'ip_address': addr[0],
+                'port': addr[1],
+                'flow': RX,
+                'recv_time': time.time()
+            }
+            self.trigger_out.emit(signal)
+            if info.get('images') or info.get('files'):
+                print(info.get('images'))
+                print(info.get('files'))
+                # todo
 
-                if type_ in [PACKET_NONE, PACKET_DETECT, PACKET_ORDER, PACKET_REPLY]:
-                    print(f'recv message type {type_} length {len(content)}')
-                    signal = {
-                        'type': OUT_RECV,
-                        'status': RECV_MESSAGE,
-                        'content': info,
-                        'ip_address': addr[0],
-                        'port': addr[1],
-                        'flow': RX,
-                        'recv_time': time.time()
-                    }
-                    self.trigger_out.emit(signal)
-                    if info.get('images') or info.get('files'):
-                        print(info.get('images'))
-                        print(info.get('files'))
 
-                if type_ == PACKET_FILE:
-                    msg = {
-                        'type': PACKET_BACK,
-                        'status': TRANSFER_READY
-                    }
-                    client.send(json.dumps(msg).encode())
-                    file_name = info.get('file_name')
-                    file_size = info.get('file_size')
-                    file_path = os.path.join(save_path, file_name)
-                    print(f'recv {file_name} {file_size} byte')
-
-                    with open(file_path, 'wb') as f:
-                        for i in range(ceil(file_size / BUFFER_SIZE)):
-                            bytes_read = client.recv(BUFFER_SIZE)
-                            if not bytes_read:
-                                break
-                            f.write(bytes_read)
-
-                    print(f'recv {file_name}')
-                    msg = {
-                        'type': PACKET_BACK,
-                        'status': TRANSFER_FINISH
-                    }
-                    client.send(json.dumps(msg).encode())
-
-        except BaseException as e:
-            client.close()
-            print(e)
-            raise e
+def get_port():
+    sock = socket.socket()
+    sock.bind(('0.0.0.0', 0))
+    _, port = sock.getsockname()
+    sock.close()
+    return port
 
 
 if __name__ == '__main__':
-    # t = Transfer()
-    # t.accept()
-    t = TransferThread()
-    t.start()
-    t.exec()
+    s = TransferThread()
+    s.udp_recv()
+    pass
+

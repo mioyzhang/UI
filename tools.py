@@ -29,6 +29,7 @@ PACKET_BACK = 4
 
 PACKET_FILE = 7
 PACKET_TEST = 8
+PACKET_LINK = 9
 
 INIT_SUCCESS = 14
 RECV_CONNECTION = 11
@@ -47,7 +48,7 @@ BUFFER_SIZE = 2048 * 10
 save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
-socket.setdefaulttimeout(TIMEOUT)
+# socket.setdefaulttimeout(TIMEOUT)
 
 
 def generate_random_gps(base_log=120.7, base_lat=30, radius=1000000):

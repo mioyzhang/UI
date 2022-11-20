@@ -40,7 +40,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # self.action_2.triggered.connect(self.show_edit_widget)
         # self.pushButton_reply.clicked.connect(self.turn_edit_widget)
-        self.viewwidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
+        self.viewWidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
 
         self.pushButton_test2.clicked.connect(self.p1_test)
         self.pushButton_3.clicked.connect(self.p2_test)
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.work_thread = TransferThread()
         self.work_thread.moveToThread(self.thread)
 
-        self.work_thread.trigger_start.connect(self.work_thread.accept)
+        self.work_thread.trigger_start.connect(self.work_thread.udp_recv)
         self.work_thread.trigger_out.connect(self.slot)
 
         self.thread.start()
