@@ -38,6 +38,8 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.editWidget.pushButton_generate_msg.clicked.connect(self.generate_msg)
         self.pushButton_send.clicked.connect(self.send)
 
+        self.listWidget_msgs.currentItemChanged.connect(self.message_info_view)
+
         self.viewWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
         self.editWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
 
@@ -83,6 +85,11 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
 
         self.label_status.setText('connected')
         self.label_status.setStyleSheet("color:green;")
+
+    def message_info_view(self, *args):
+        self.stackedWidget.setCurrentIndex(1)
+        packet = args[0].packet
+        self.viewWidget.display(packet.message)
 
     def add_packet(self, packet):
         print(f'add {packet}')
