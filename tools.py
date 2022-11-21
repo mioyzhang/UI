@@ -13,8 +13,8 @@ OUT_RECV = 5
 OUT_ERROR = 15
 
 # status
-CONNECT_FAIL = 6
 TEST_DELAY = 7
+TEST_DELAY_FAIL = 6
 
 SEND_ERROR = 8
 SEND_SUCCESS = 9
@@ -31,6 +31,8 @@ PACKET_FILE = 7
 PACKET_TEST = 8
 PACKET_LINK = 9
 
+PACKET_TOOL = 5
+
 INIT_SUCCESS = 14
 RECV_CONNECTION = 11
 RECV_MESSAGE = 12
@@ -45,7 +47,14 @@ LISTENING_PORT = 8900
 
 BUFFER_SIZE = 2048 * 10
 
-save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
+
+img_path = '/home/dell/workspace/UI/resource/icon'
+file_path = '/home/dell/workspace/UI/resource/file'
+save_path = '/home/dell/workspace/UI/resource/tmp'
+
+# img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
+# file_path = 'D:/Develop/PycharmProjects/UI/resource/file'
+# save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
 # socket.setdefaulttimeout(TIMEOUT)
@@ -70,6 +79,7 @@ def generate_random_gps(base_log=120.7, base_lat=30, radius=1000000):
     longitude = y + base_log
     latitude = x + base_lat
     # 这里是想保留6位小数点
-    loga = '%.6f' % longitude
-    lata = '%.6f' % latitude
-    return loga, lata
+    # loga = '%.6f' % longitude
+    # lata = '%.6f' % latitude
+    # return loga, lata
+    return longitude, latitude

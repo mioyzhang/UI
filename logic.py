@@ -1,3 +1,4 @@
+import os
 import json
 
 from tools import *
@@ -43,12 +44,12 @@ class Message(object):
         self.with_gps = args.get('with_gps')
         self.gps = args.get('gps')
         self.content = args.get('content')
-        self.files = args.get('files')
-        self.images = args.get('images')
+        self.files = args.get('files') if args.get('files') else []
+        self.images = args.get('images') if args.get('images') else []
     
     def to_dict(self, with_path=True):
-        files = self.files if with_path else [i.split('/')[-1] for i in self.files]
-        images = self.images if with_path else [i.split('/')[-1] for i in self.images]
+        files = self.files if with_path else [os.path.basename(i) for i in self.files]
+        images = self.images if with_path else [os.path.basename(i) for i in self.images]
 
         message_dict = {
             'sequence': self.sequence,

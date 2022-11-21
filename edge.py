@@ -8,6 +8,7 @@ from ui.edgeWindow import Ui_EdgeMainWindow
 from tools import *
 from logic import Message, Packet
 from transfer import TransferThread
+from widgets import MessageQListWidgetItem
 
 
 class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
@@ -18,31 +19,25 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.thread = None
         self.work_thread = None
         self.sequence = 0
+        self.packets = []
 
         self.setupUi(self)
         self.init_connect()
 
         # temporary use
-        self.editwidget.label_seq.setText(f'{self.sequence:0>8d}')
+        self.editWidget.label_seq.setText(f'{self.sequence:0>8d}')
 
     def init_connect(self):
 
         self.pushButton_check.clicked.connect(self.check_connect)
-
         self.pushButton_test2.clicked.connect(self.test)
 
-        # self.editwidget.pushButton_submit.clicked.connect(self.send)
+        # self.editWidget.pushButton_submit.clicked.connect(self.send)
         self.pushButton_send.clicked.connect(self.send)
 
-        self.pushButton_turn.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
-        self.editwidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
+        self.viewWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
+        self.editWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
 
-        # 子线程信号与槽
-        # self.work_thread = SocketThread()
-        # self.work_thread.trigger_in.connect(self.work_thread.slot)
-        # self.work_thread.trigger_out.connect(self.slot)
-        # self.work_thread.start()
-        
         # fixme PyQt线程科学用法
         self.thread = QThread()
         self.work_thread = TransferThread()
@@ -52,13 +47,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.thread.start()
 
     def test(self):
-
-        signal = {
-            'type': SIGNAL_TEST,
-            'address': (self.lineEdit_c_address.text(), int(self.lineEdit_c_port.text())),
-        }
-        print(f'main   --> {signal}')
-        self.work_thread.trigger_in.emit(signal)
+        print('test')
 
     def check_connect(self):
         self.pushButton_set.setChecked(False)
@@ -78,7 +67,16 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         # self.label_delay.setText(f'{delay:.2e} ms')
 
         self.label_status.setText('connected')
-        self.label_status.setStyleSheet("color:green;"); 
+        self.label_status.setStyleSheet("color:green;")
+
+    def add_packet(self, packet):
+        print(f'add {packet}')
+        if packet in self.packets:
+            return
+        self.packets.append(packet)
+        item = MessageQListWidgetItem(packet)
+        self.listWidget_msgs.addItem(item)
+        self.listWidget_msgs.setItemWidget(item, item.widget)
 
     def slot(self, args: dict):
         # if self.work_thread.started
@@ -87,12 +85,22 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         status = args.get('status')
 
         if type_ == OUT_SEND:
-            content = args.get('content')
-            error = args.get('error')
-            QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if status == SEND_SUCCESS:
+                content = args.get('content')
+                ip_address = args.get('ip_address')
+                flow = args.get('flow')
+                send_time = args.get('send_time')
+                message = Message(content)
+                packet = Packet(message=message, dst=ip_address, flow=flow, send_time=send_time)
+                self.add_packet(packet)
+            
+            else:
+                content = args.get('content')
+                error = args.get('error')
+                QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if type_ == OUT_ERROR:
-            if status in [SEND_ERROR, RECV_ERROR, CONNECT_FAIL]:
+            if status in [SEND_ERROR, RECV_ERROR, TEST_DELAY_FAIL]:
                 error = args.get('error')
                 self.label_delay.setText('inf')
                 self.label_status.setText('disconnect')
@@ -105,8 +113,8 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 self.view_delay(delay)
 
     def send(self):
-        self.editwidget.extract()
-        message = self.editwidget.message
+        self.editWidget.extract()
+        message = self.editWidget.message
 
         # tochange
         address = '127.0.0.1'

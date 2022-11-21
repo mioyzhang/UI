@@ -40,6 +40,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # self.action_2.triggered.connect(self.show_edit_widget)
         # self.pushButton_reply.clicked.connect(self.turn_edit_widget)
+        self.editWidget.pushButton_cancel.clicked.connect(self.turn_view_widget)
         self.viewWidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
 
         self.pushButton_test2.clicked.connect(self.p1_test)
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.work_thread = TransferThread()
         self.work_thread.moveToThread(self.thread)
 
-        self.work_thread.trigger_start.connect(self.work_thread.udp_recv)
+        # self.work_thread.trigger_start.connect(self.work_thread.)
         self.work_thread.trigger_out.connect(self.slot)
 
         self.thread.start()
@@ -134,7 +135,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def message_info_view(self, *args):
         self.stackedWidget_message.setCurrentIndex(0)
         packet = args[0].packet
-        self.viewwidget.display(packet.message)
+        self.viewWidget.display(packet.message)
 
         self.label_src.setText(f'{packet.src}')
         self.label_dst.setText(f'{packet.dst}')

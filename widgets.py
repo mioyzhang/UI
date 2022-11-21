@@ -101,7 +101,8 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.horizontalLayout.addItem(spacerItem1)
         self.horizontalLayout.addLayout(self.verticalLayout)
 
-        self.label_2.setText(f'{self.packet.src}')
+        # self.label_2.setText(f'{self.packet.src}')
+        self.label_2.setText(f'{self.packet.dst}')
         self.label_3.setText(self.packet.message.summary())
 
         # self.widget.setMaximumHeight(81)
@@ -109,8 +110,6 @@ class MessageQListWidgetItem(QListWidgetItem):
 
 
 class MessageEditWidget(QWidget, Ui_EditForm): 
-    # def __init__(self, parent: typing.Optional['QWidget'] = ...) -> None:
-    #     super().__init__(parent)
     def __init__(self, *args) -> None:
         super().__init__(*args)
 
@@ -168,7 +167,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
             'images': [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
         }
         self.message = Message(info)
-        print(self.message)
+        print(self.message.summary())
 
     def clear_info(self):
         self.label_seq.setText('')
@@ -184,20 +183,17 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         import faker
         faker = faker.Faker()
 
-        # img_path = '/home/dell/workspace/UI/resource/icon'
-        img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
         imgs = os.listdir(img_path)
         imgs = random.sample(imgs, random.randint(0, len(imgs)))
         imgs = [os.path.join(img_path, i) for i in imgs]
 
-        file_path = '/home/dell/workspace/UI/resource/file'
-        file_path = 'D:/Develop/PycharmProjects/UI/resource/file'
         files = os.listdir(file_path)
         files = random.sample(files, random.randint(0, len(files)))
         files = [os.path.join(file_path, i) for i in files]
 
         info = {
             'sequence': random.randint(0, 10000),
+            # 'sequence': None,
             'type': random.randint(0, 3),
             'with_gps': random.choice([True, False]),
             'gps': generate_random_gps(),
@@ -245,7 +241,6 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
         self.label_gps.setText(f'{message.gps}')
         self.textBrowser.setPlainText(f'{message.content}')
         images = message.images
-        save_path = 'D:/Develop/PycharmProjects/UI/resource'
         if images:
             self.scrollArea.show()
             for i in images:
@@ -264,7 +259,6 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
         self.display(m)
 
     def show_img(self):
-        img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
         imgs = [os.path.join(img_path, i) for i in os.listdir(img_path)]
 
         verticalLayout_images = QVBoxLayout(self.scrollAreaWidgetContents)
