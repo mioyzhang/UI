@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>965</width>
-    <height>691</height>
+    <width>1143</width>
+    <height>869</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,7 +73,7 @@
                 </size>
                </property>
                <property name="currentIndex">
-                <number>2</number>
+                <number>0</number>
                </property>
                <widget class="QWidget" name="tab">
                 <attribute name="title">
@@ -92,13 +92,7 @@
                       </widget>
                      </item>
                      <item>
-                      <widget class="QComboBox" name="comboBox_dst">
-                       <item>
-                        <property name="text">
-                         <string>控制中心</string>
-                        </property>
-                       </item>
-                      </widget>
+                      <widget class="QComboBox" name="comboBox_dst"/>
                      </item>
                     </layout>
                    </item>
@@ -465,7 +459,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>965</width>
+     <width>1143</width>
      <height>22</height>
     </rect>
    </property>

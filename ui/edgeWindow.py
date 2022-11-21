@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_EdgeMainWindow(object):
     def setupUi(self, EdgeMainWindow):
         EdgeMainWindow.setObjectName("EdgeMainWindow")
-        EdgeMainWindow.resize(965, 691)
+        EdgeMainWindow.resize(1143, 869)
         self.centralwidget = QtWidgets.QWidget(EdgeMainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -73,7 +73,6 @@ class Ui_EdgeMainWindow(object):
         self.horizontalLayout.addWidget(self.label_14)
         self.comboBox_dst = QtWidgets.QComboBox(self.tab)
         self.comboBox_dst.setObjectName("comboBox_dst")
-        self.comboBox_dst.addItem("")
         self.horizontalLayout.addWidget(self.comboBox_dst)
         self.verticalLayout_4.addLayout(self.horizontalLayout)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -235,7 +234,7 @@ class Ui_EdgeMainWindow(object):
         self.horizontalLayout_5.addWidget(self.widget)
         EdgeMainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(EdgeMainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 965, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1143, 22))
         self.menubar.setObjectName("menubar")
         EdgeMainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(EdgeMainWindow)
@@ -244,7 +243,7 @@ class Ui_EdgeMainWindow(object):
 
         self.retranslateUi(EdgeMainWindow)
         self.stackedWidget.setCurrentIndex(0)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         self.radioButton_address.clicked['bool'].connect(self.lineEdit_address.setEnabled) # type: ignore
         self.pushButton_set.clicked['bool'].connect(self.lineEdit_c_address.setEnabled) # type: ignore
         self.pushButton_set.clicked['bool'].connect(self.lineEdit_c_port.setEnabled) # type: ignore
@@ -256,7 +255,6 @@ class Ui_EdgeMainWindow(object):
         self.groupBox_msg_list.setTitle(_translate("EdgeMainWindow", "消息队列"))
         self.groupBox.setTitle(_translate("EdgeMainWindow", "编辑消息"))
         self.label_14.setText(_translate("EdgeMainWindow", "目的节点："))
-        self.comboBox_dst.setItemText(0, _translate("EdgeMainWindow", "控制中心"))
         self.radioButton_address.setText(_translate("EdgeMainWindow", "其它地址："))
         self.label_15.setText(_translate("EdgeMainWindow", "传输协议："))
         self.comboBox_protocol.setItemText(0, _translate("EdgeMainWindow", "TCP"))

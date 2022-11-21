@@ -49,30 +49,262 @@
        <number>0</number>
       </property>
       <widget class="QWidget" name="page">
-       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="3,10,0">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QLabel" name="label_26">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="text">
              <string>消息队列</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="listWidget_messages"/>
+           <widget class="QListWidget" name="listWidget_messages">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item>
          <widget class="QStackedWidget" name="stackedWidget_message">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page_message_view">
-           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="MessageViewWidget" name="viewWidget" native="true"/>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_7" native="true">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_4">
+               <item>
+                <widget class="QWidget" name="widget" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_3">
+                  <item>
+                   <widget class="QLabel" name="label_7">
+                    <property name="text">
+                     <string>消息详情</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="widget_2" native="true">
+                    <layout class="QGridLayout" name="gridLayout">
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string>协议：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLabel" name="label_src">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="4" column="0">
+                      <widget class="QLabel" name="label_13">
+                       <property name="text">
+                        <string>GPS：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="label_dst">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="1">
+                      <widget class="QLabel" name="label_recv_time">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="0">
+                      <widget class="QLabel" name="label_10">
+                       <property name="text">
+                        <string>接收时间：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="4" column="1">
+                      <widget class="QLabel" name="label_gps">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QLabel" name="label_protocol">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_3">
+                       <property name="text">
+                        <string>源节点：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_5">
+                       <property name="text">
+                        <string>目的节点：</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Preferred</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QWidget" name="widget_4" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_8">
+                    <property name="text">
+                     <string>节点详情</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="widget_3" native="true">
+                    <layout class="QGridLayout" name="gridLayout_2">
+                     <item row="4" column="1">
+                      <widget class="QLabel" name="label_last_gps">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_15">
+                       <property name="text">
+                        <string>节点标签：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLabel" name="label_address">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QLabel" name="label_node_type">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="0">
+                      <widget class="QLabel" name="label_21">
+                       <property name="text">
+                        <string>last seen：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="4" column="0">
+                      <widget class="QLabel" name="label_23">
+                       <property name="text">
+                        <string>last gps：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="1">
+                      <widget class="QLabel" name="label_last_seen">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_17">
+                       <property name="text">
+                        <string>节点地址：</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLabel" name="label_label">
+                       <property name="text">
+                        <string>None</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="label_19">
+                       <property name="text">
+                        <string>节点类型</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>420</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -124,13 +356,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox_dst">
-                      <item>
-                       <property name="text">
-                        <string>控制中心</string>
-                       </property>
-                      </item>
-                     </widget>
+                     <widget class="QComboBox" name="comboBox_dst"/>
                     </item>
                    </layout>
                   </item>
@@ -166,11 +392,6 @@
                       <item>
                        <property name="text">
                         <string>TCP</string>
-                       </property>
-                      </item>
-                      <item>
-                       <property name="text">
-                        <string>UDP</string>
                        </property>
                       </item>
                      </widget>
@@ -266,201 +487,6 @@
            </layout>
           </widget>
          </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QWidget" name="widget" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <item>
-              <widget class="QLabel" name="label_7">
-               <property name="text">
-                <string>消息详情</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_2" native="true">
-               <layout class="QGridLayout" name="gridLayout">
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_9">
-                  <property name="text">
-                   <string>协议：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_src">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_13">
-                  <property name="text">
-                   <string>GPS：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLabel" name="label_dst">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLabel" name="label_recv_time">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>接收时间：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QLabel" name="label_gps">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLabel" name="label_protocol">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>源节点：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_5">
-                  <property name="text">
-                   <string>目的节点：</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>节点详情</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_3" native="true">
-               <layout class="QGridLayout" name="gridLayout_2">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_15">
-                  <property name="text">
-                   <string>节点标签：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_label">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_17">
-                  <property name="text">
-                   <string>节点地址：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLabel" name="label_address">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0">
-                 <widget class="QLabel" name="label_19">
-                  <property name="text">
-                   <string>节点类型</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QLabel" name="label_node_type">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QLabel" name="label_21">
-                  <property name="text">
-                   <string>last seen：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLabel" name="label_last_seen">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QLabel" name="label_23">
-                  <property name="text">
-                   <string>last gps：</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QLabel" name="label_last_gps">
-                  <property name="text">
-                   <string>None</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
         </item>
        </layout>
       </widget>
@@ -718,5 +744,22 @@
  <resources>
   <include location="../resource/resouce.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>radioButton_address</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>lineEdit_address</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>427</x>
+     <y>509</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>522</x>
+     <y>509</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

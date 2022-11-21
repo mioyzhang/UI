@@ -68,6 +68,9 @@ class Message(object):
     def summary(self):
         return self.content[:20] if len(self.content) > 20 else self.content
 
+    def detail(self):
+        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
+
     def __hash__(self) -> int:
         return self.sequence
 
@@ -75,7 +78,7 @@ class Message(object):
         return isinstance(other, Message) and self.sequence == other.sequence
 
     def __str__(self) -> str:
-        return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
+        return f'Message({self.sequence})'
     
     def __repr__(self) -> str:
         return f'Message({self.sequence})'

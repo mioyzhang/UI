@@ -124,7 +124,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         self.pushButton_generate.clicked.connect(self.generate_random_gps)
 
         self.pushButton_submit.clicked.connect(self.extract)
-        self.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        # self.pushButton_generate_msg.clicked.connect(self.generate_msg)
 
         self.toolButton_file.clicked.connect(self.choose_file)
         self.toolButton_img.clicked.connect(self.choose_image)
@@ -167,7 +167,6 @@ class MessageEditWidget(QWidget, Ui_EditForm):
             'images': [self.listWidget_images.item(i).text() for i in range(self.listWidget_images.count())]
         }
         self.message = Message(info)
-        print(self.message.summary())
 
     def clear_info(self):
         self.label_seq.setText('')
@@ -192,8 +191,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         files = [os.path.join(file_path, i) for i in files]
 
         info = {
-            'sequence': random.randint(0, 10000),
-            # 'sequence': None,
+            # 'sequence': random.randint(0, 10000),
             'type': random.randint(0, 3),
             'with_gps': random.choice([True, False]),
             'gps': generate_random_gps(),
@@ -202,7 +200,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
             'images': imgs
         }
 
-        self.label_seq.setText(f"{info.get('sequence')}")
+        # self.label_seq.setText(f"{info.get('sequence')}")
         self.comboBox_msg_type.setCurrentIndex(info.get('type'))
         self.radioButton_gps.setChecked(info.get('with_gps'))
         self.lineEdit_gps.setText(f"{info.get('gps')}")

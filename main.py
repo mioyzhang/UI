@@ -2,11 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-import time
-from math import ceil
-from threading import Thread
-
-from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import QObject, QThread, pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QToolTip, QPushButton, QApplication, \
     QMainWindow, QListWidgetItem, QFileDialog, QMessageBox
@@ -20,23 +15,31 @@ from transfer import TransferThread
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    main_thread_trigger = pyqtSignal(str)
-
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        self.sequence = random.randint(0, 10 ** 8 - 1)
         self.nodes = []
         self.messages = []
         self.packets = []
 
-        self.thread = None
-        self.work_thread = None
+        self.thread1 = None
+        self.thread2 = None
+        self.recv_thread = None
+        self.send_thread = None
         self.setupUi(self)
 
         self.init_cnt()
+        self.editWidget.label_seq.setText(f'{self.sequence:0>8d}')
 
     def init_cnt(self):
         self.listWidget.currentRowChanged.connect(lambda x: self.stackedWidget.setCurrentIndex(x))
+
+        self.listWidget_nodes.currentItemChanged.connect(self.node_info_view)
+        self.listWidget_messages.currentItemChanged.connect(self.message_info_view)
+
+        self.editWidget.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        self.pushButton_send.clicked.connect(self.send_message)
 
         # self.action_2.triggered.connect(self.show_edit_widget)
         # self.pushButton_reply.clicked.connect(self.turn_edit_widget)
@@ -46,19 +49,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_test2.clicked.connect(self.p1_test)
         self.pushButton_3.clicked.connect(self.p2_test)
 
-        self.listWidget_nodes.currentItemChanged.connect(self.node_info_view)
-        self.listWidget_messages.currentItemChanged.connect(self.message_info_view)
-
         # 子线程初始化
-        self.thread = QThread()
-        self.work_thread = TransferThread()
-        self.work_thread.moveToThread(self.thread)
+        self.thread1 = QThread()
 
-        # self.work_thread.trigger_start.connect(self.work_thread.)
-        self.work_thread.trigger_out.connect(self.slot)
+        self.recv_thread = TransferThread(udp_port=LISTENING_PORT_1)
+        self.recv_thread.moveToThread(self.thread1)
+        self.recv_thread.trigger_start.connect(self.recv_thread.udp_accept)
+        self.recv_thread.trigger_out.connect(self.slot)
+        # self.recv_thread.trigger_in.connect(self.recv_thread.slot)
 
-        self.thread.start()
-        self.work_thread.trigger_start.emit()
+        self.thread1.start()
+        self.recv_thread.trigger_start.emit()
+
+        self.thread2 = QThread()
+        self.send_thread = TransferThread()
+        self.send_thread.moveToThread(self.thread2)
+        self.send_thread.trigger_in.connect(self.send_thread.slot)
+        self.send_thread.trigger_out.connect(self.slot)
+        self.thread2.start()
+
+    def generate_msg(self):
+        self.editWidget.generate_msg()
+        self.editWidget.label_seq.setText(f'{self.sequence:0>8d}')
+
+    def send_message(self):
+        self.editWidget.extract()
+        message = self.editWidget.message
+
+        if self.radioButton_address.isChecked():
+            address = extract_address(self.lineEdit_address.text())
+            if not address:
+                QMessageBox.warning(self, "warning", f'请输入正确ip地址', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
+        else:
+            address = self.comboBox_dst.currentText()
+
+        address = address if address else '127.0.0.1'
+        protocol = self.comboBox_protocol.currentText()
+
+        print(f'send {message} to {address}')
+
+        signal = {
+            'type': SIGNAL_SEND,
+            'content': message.to_json(),
+            'dest': (address, LISTENING_PORT),
+            'protocol': protocol
+        }
+        self.send_thread.trigger_in.emit(signal)
+        self.sequence += 1
 
     def slot(self, args):
         print(f'main <-- {args}')
@@ -88,12 +126,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if type_ == OUT_RECV:
             ip_address = args.get('ip_address')
-            port = args.get('port')
             content = args.get('content')
             recv_time = args.get('recv_time')
+            flow = args.get('flow')
+
             message = Message(content)
-            packet = Packet(src=(ip_address, port), message=message, recv_time=recv_time)
+            packet = Packet(src=ip_address, message=message, recv_time=recv_time)
             self.add_packet(packet)
+
+        if type_ == OUT_SEND:
+            if status == SEND_SUCCESS:
+                content = args.get('content')
+                ip_address = args.get('ip_address')
+                flow = args.get('flow')
+                send_time = args.get('send_time')
+                message = Message(content)
+                packet = Packet(message=message, dst=ip_address, flow=flow, send_time=send_time)
+                self.add_packet(packet)
 
         pass
 

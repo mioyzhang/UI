@@ -44,17 +44,18 @@ RX = 0
 TX = 1
 TIMEOUT = 3
 LISTENING_PORT = 8900
+LISTENING_PORT_1 = 8901
 
 BUFFER_SIZE = 2048 * 10
 
 
-img_path = '/home/dell/workspace/UI/resource/icon'
-file_path = '/home/dell/workspace/UI/resource/file'
-save_path = '/home/dell/workspace/UI/resource/tmp'
+# img_path = '/home/dell/workspace/UI/resource/icon'
+# file_path = '/home/dell/workspace/UI/resource/file'
+# save_path = '/home/dell/workspace/UI/resource/tmp'
 
-# img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
-# file_path = 'D:/Develop/PycharmProjects/UI/resource/file'
-# save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
+img_path = 'D:/Develop/PycharmProjects/UI/resource/icon'
+file_path = 'D:/Develop/PycharmProjects/UI/resource/file'
+save_path = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
 # socket.setdefaulttimeout(TIMEOUT)
@@ -83,3 +84,17 @@ def generate_random_gps(base_log=120.7, base_lat=30, radius=1000000):
     # lata = '%.6f' % latitude
     # return loga, lata
     return longitude, latitude
+
+
+def extract_address(s):
+    """
+    判断ip地址合法性
+    :param s:
+    :return:
+    """
+    import re
+    compile_ip = re.compile(r'^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')
+    if compile_ip.match(s):
+        return s
+    else:
+        return False

@@ -24,6 +24,7 @@ class TransferThread(QObject):
         self.udpSender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     
     def slot(self, args):
+        print(f'thread <-- {args}')
         type_ = args.get('type')
 
         if type_ == SIGNAL_CHECK:
@@ -38,23 +39,35 @@ class TransferThread(QObject):
             self.send_message(message, address)
 
     def send_message(self, message, address):
-        self.tcp_port = get_port()
-        thread = Thread(target=self.tcp_transfer_send, args=(self.tcp_port, message))
-        thread.start()
+        try:
+            self.tcp_port = get_port()
+            thread = Thread(target=self.tcp_transfer_send, args=(self.tcp_port, message))
+            thread.start()
 
-        message = {
-            'type': PACKET_LINK,
-            'protocol': 'TCP',
-            'port': self.tcp_port
-        }
-        self.udpSender.sendto(json.dumps(message).encode(), address)
+            message = {
+                'type': PACKET_LINK,
+                'protocol': 'TCP',
+                'port': self.tcp_port
+            }
+            self.udpSender.sendto(json.dumps(message).encode(), address)
 
-        recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
-        info = json.loads(recvData.decode())
-        if info.get('status'):
-            print('waiting for connection')
+            recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
+            info = json.loads(recvData.decode())
+            if info.get('status'):
+                print('waiting for connection')
+
+        except BaseException as e:
+            signal = {
+                'type': OUT_ERROR,
+                'status': SEND_ERROR,
+                'content': str(message),
+                'error': e,
+            }
+            print(e)
+            self.trigger_out.emit(signal)
 
     def tcp_transfer_send(self, port, message: Message):
+        server = None
         try:
             server = socket.socket()
             server.bind(('0.0.0.0', port))
@@ -93,7 +106,6 @@ class TransferThread(QObject):
             server.close()
             
     def send_file(self, file, client, address):
-
         file_name = os.path.basename(file)
         file_size = os.path.getsize(file)
         msg = {
@@ -149,7 +161,7 @@ class TransferThread(QObject):
             
             print(f'recv {info} success')
             signal = {
-                'type': OUT_SEND,
+                'type': OUT_RECV,
                 'status': SEND_SUCCESS,
                 'content': info,
                 'ip_address': address[0],
