@@ -13,7 +13,14 @@ from logic import Packet, Message
 # c.send_message(m, ('127.0.0.1', 8901))
 
 
+import string
 import random
 
-s = random.randint(0, 10 ** 8 - 1)
-print(s)
+a = f'{random.choice(string.ascii_uppercase)}{random.randint(0, 99)}'
+b = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
+
+print(a)
+print(b)
+
+for _ in range(100):
+    print(random.randint(0, 7), end=' ')

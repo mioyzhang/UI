@@ -215,7 +215,7 @@ class TransferThread(QObject):
 
             signal = {
                 'type': OUT_INFO,
-                'status': INIT_SUCCESS,
+                'status': INIT_ACCEPT_SUCCESS,
                 'port': LISTENING_PORT
             }
             self.trigger_out.emit(signal)
@@ -298,7 +298,7 @@ class TransferThread(QObject):
                     client.send(json.dumps(msg).encode())
                     file_name = info.get('file_name')
                     file_size = info.get('file_size')
-                    file_path = os.path.join(save_path, file_name)
+                    file_path = os.path.join(SAVE_PATH, file_name)
                     print(f'recv {file_name} {file_size} byte')
 
                     with open(file_path, 'wb') as f:

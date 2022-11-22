@@ -1,34 +1,55 @@
 import os
 import json
+import string
+import random
+import time
 
 from tools import *
 
 
 class Node(object):
 
-    def __init__(self, label=None, ip_address=None, port=None, mac_address=None):
+    def __init__(self, label=None, ip_address=None, port=None, type_=NODE_NONE, last_seen=None, generate=False):
         super(Node, self).__init__()
         self.label = label
         self.ip_address = ip_address
-        self.port = port
-        self.mac_address = mac_address
+        self.port = port    # udp listen port
 
-        self.type = None
+        self.last_seen = last_seen
+        self.type = type_
         self.status = None
-        self.last_seen = None
         self.last_gps = None
+        self.packets = []
+
+        if generate:
+            self.label = f'{random.choice(string.ascii_uppercase)}{random.randint(0, 99)}'
+            self.ip_address = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
+            self.last_seen = time.time() - random.randint(0, 10000)
+            self.type = random.randint(0, 7)
+
+    def update(self, node):
+        if not isinstance(node, Node):
+            return
+
+        if not self.label and node.label:
+            self.label = node.label
+        if node.last_seen:
+            if not self.last_seen:
+                self.last_seen = node.last_seen
+            if self.last_seen and node.last_seen > self.last_seen:
+                self.last_seen = node.last_seen
 
     def __str__(self):
-        return f'Node({self.ip_address}:{self.port})'
+        return f'{self.label}({self.ip_address})'
 
     def __repr__(self):
-        return f'Node({self.ip_address}:{self.port})'
+        return f'Node({self.label} {self.ip_address})'
 
     def __hash__(self) -> int:
-        return hash(self.ip_address) ^ hash(self.port)
+        return hash(self.ip_address)
 
     def __eq__(self, other):
-        return isinstance(other, Node) and self.ip_address == other.ip_address and self.port == other.port
+        return isinstance(other, Node) and self.ip_address == other.ip_address
 
 
 class Message(object):
@@ -91,10 +112,10 @@ class Packet(object):
         self.src = src
         self.dst = dst
         self.protocol = protocol
-        self.status = PACKET_UNSENT
         self.recv_time = recv_time
         self.send_time = send_time
         self.flow = flow
+        self.status = PACKET_UNSENT
 
         self.message = message
         self.sequence = self.message.sequence

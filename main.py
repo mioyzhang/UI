@@ -38,16 +38,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listWidget_nodes.currentItemChanged.connect(self.node_info_view)
         self.listWidget_messages.currentItemChanged.connect(self.message_info_view)
 
-        self.editWidget.pushButton_generate_msg.clicked.connect(self.generate_msg)
-        self.pushButton_send.clicked.connect(self.send_message)
-
-        # self.action_2.triggered.connect(self.show_edit_widget)
-        # self.pushButton_reply.clicked.connect(self.turn_edit_widget)
+        # editWidget
         self.editWidget.pushButton_cancel.clicked.connect(self.turn_view_widget)
-        self.viewWidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
+        self.editWidget.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        self.editWidget.pushButton_clear.clicked.connect(self.editWidget.clear_info)
+        # self.editWidget.pushButton_submit.clicked.connect(self.editWidget.extract)
 
+        self.pushButton_send.clicked.connect(self.send_message)
         self.pushButton_test2.clicked.connect(self.p1_test)
-        self.pushButton_3.clicked.connect(self.p2_test)
+
+        self.pushButton_p2_test.clicked.connect(self.p2_test)
+
+        self.viewWidget.pushButton_cancel.clicked.connect(self.turn_edit_widget)
 
         # 子线程初始化
         self.thread1 = QThread()
@@ -75,24 +77,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def send_message(self):
         self.editWidget.extract()
         message = self.editWidget.message
+        protocol = self.comboBox_protocol.currentText()
 
         if self.radioButton_address.isChecked():
             address = extract_address(self.lineEdit_address.text())
             if not address:
                 QMessageBox.warning(self, "warning", f'请输入正确ip地址', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                return
 
         else:
-            address = self.comboBox_dst.currentText()
-
-        address = address if address else '127.0.0.1'
-        protocol = self.comboBox_protocol.currentText()
+            index = self.comboBox_dst.currentIndex()
+            if index == -1:
+                QMessageBox.warning(self, "warning", f'请选择节点', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                return
+            node = self.nodes[index]
+            ip = node.ip_address
+            port = node.port if node.port else LISTENING_PORT
+            address = (ip, port)
 
         print(f'send {message} to {address}')
 
         signal = {
             'type': SIGNAL_SEND,
             'content': message.to_json(),
-            'dest': (address, LISTENING_PORT),
+            'dest': address,
             'protocol': protocol
         }
         self.send_thread.trigger_in.emit(signal)
@@ -104,13 +112,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         status = args.get('status')
 
         if type_ == OUT_ERROR:
+            # signal 2
             error = args.get('error')
             QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if type_ == OUT_INFO:
-            if status == INIT_SUCCESS:
+            # signal 1
+            if status == INIT_ACCEPT_SUCCESS:
                 port = args.get('port')
                 self.statusBar().showMessage(f'Listening on port {port}', 5000)
+
+            # signal 3
+            if status == OTHER_TEST_DELAY:
+                hostname = args.get('hostname')
+                ip_address = args.get('ip_address')
+                recv_time = args.get('recv_time')
+                new_node = Node(label=hostname, ip_address=ip_address, last_seen=recv_time)
+                self.add_node(new_node)
+
+            # signal 4
+            if status == OTHER_TEST_DELAY:
+                pass
 
             if status == RECV_CONNECTION:
                 ip_address = args.get('ip_address')
@@ -160,17 +182,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listWidget_messages.setItemWidget(item, item.widget)
 
     def p2_test(self):
-        new_node = Node(label='s1', ip_address='10.0.0.1', port=1234)
+        new_node = Node(generate=True)
         self.add_node(new_node)
 
     def add_node(self, node: Node):
+
         if node in self.nodes:
-            return
-        self.nodes.append(node)
-        item = NodeQListWidgetItem(node)
-        item.setSizeHint(QSize(item.sizeHint().width(), 43))
-        self.listWidget_nodes.addItem(item)
-        self.listWidget_nodes.setItemWidget(item, item.widget)
+            index = self.nodes.index(node)
+            self.nodes[index].update(node)
+        else:
+            self.nodes.append(node)
+            item = NodeQListWidgetItem(node)
+            item.setSizeHint(QSize(item.sizeHint().width(), 43))
+            self.listWidget_nodes.addItem(item)
+            self.listWidget_nodes.setItemWidget(item, item.widget)
+
+            self.comboBox_dst.addItem(str(node))
+            self.comboBox_dst.setCurrentIndex(-1)
 
     def add_packet(self, packet):
         print(f'add {packet}')
@@ -194,50 +222,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def node_info_view(self, *args):
         node = args[0].node
-        self.label_29.setText(node.label)
-        self.label_31.setText(node.ip_address)
-        self.label_33.setText(node.type)
-        self.label_35.setText(node.last_seen)
-        self.label_37.setText(node.last_gps)
+        self.label_d_label.setText(node.label)
+        self.label_d_ip.setText(node.ip_address)
+        self.label_d_type.setText(NODE_TYPE[node.type])
+        self.label_d_time.setText(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(node.last_seen)))
 
     def turn_view_widget(self):
         self.stackedWidget_message.setCurrentIndex(0)
 
     def turn_edit_widget(self):
         self.stackedWidget_message.setCurrentIndex(1)
-
-    def message_process(self, signal: dict):
-        # print(sys._getframe().f_code.co_name)
-        print(f'Main recv {signal}')
-        ip_address, port = signal.get('address')
-        type_ = signal.get('type')
-
-        if type_ == 'connect':
-            if self.address_in_nodes(ip_address):
-                pass
-            else:
-                new_node = Node(ip_address=ip_address)
-                self.add_node(new_node)
-                item = NodeQListWidgetItem(new_node)
-                self.listWidget_nodes.addItem(item)
-                # todo
-                self.listWidget_nodes.setItemWidget(item, item.widget)
-        
-        if type_ == 'message':
-            content = signal.get('content')
-            message = {
-                'content': content
-            }
-            m = Message(args=message)
-            p = Packet(message=m, src=ip_address)
-
-            item = MessageQListWidgetItem(p)
-            self.listWidget_messages.addItem(item)
-            self.listWidget_messages.setItemWidget(item, item.widget)
-
-        if type_ == 'error':
-            content = signal.get('content')
-            QMessageBox.warning(self, content, QMessageBox.Yes | QMessageBox.No)
 
 
 if __name__ == '__main__':

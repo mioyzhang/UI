@@ -6,7 +6,7 @@ from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from ui.edgeWindow import Ui_EdgeMainWindow
 
 from tools import *
-from logic import Message, Packet
+from logic import Message, Packet, Node
 from transfer import TransferThread
 from widgets import MessageQListWidgetItem
 
@@ -35,13 +35,17 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.pushButton_check.clicked.connect(self.check_connect)
         self.pushButton_test2.clicked.connect(self.test)
 
+        self.editWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
         self.editWidget.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        self.editWidget.pushButton_clear.clicked.connect(self.editWidget.clear_info)
+        # self.editWidget.pushButton_submit.clicked.connect()
+
+        self.radioButton_address.clicked['bool'].connect(self.comboBox_dst.setDisabled)
         self.pushButton_send.clicked.connect(self.send)
 
-        self.listWidget_msgs.currentItemChanged.connect(self.message_info_view)
+        self.listWidget_messages.currentItemChanged.connect(self.message_info_view)
 
         self.viewWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
-        self.editWidget.pushButton_cancel.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
 
         # 子线程初始化
         self.thread1 = QThread()
@@ -75,14 +79,12 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
             'type': SIGNAL_CHECK,
             'address': (self.lineEdit_c_address.text(), int(self.lineEdit_c_port.text())),
         }
-        print(f'main   --> {signal}')
         self.send_thread.trigger_in.emit(signal)
     
     def view_delay(self, delay):
         delay = delay * 10 ** 3 / 2
         self.label_delay.setText(f'{delay:.3f} ms')
         # self.label_delay.setText(f'{delay:.2e} ms')
-
         self.label_status.setText('connected')
         self.label_status.setStyleSheet("color:green;")
 
@@ -91,14 +93,21 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         packet = args[0].packet
         self.viewWidget.display(packet.message)
 
+    def add_node(self, node: Node):
+        if node in self.nodes:
+            index = self.nodes.index(node)
+            self.nodes[index].update(node)
+        else:
+            self.nodes.append(node)
+
     def add_packet(self, packet):
-        print(f'add {packet}')
+        print(f'recv {packet}')
         if packet in self.packets:
             return
         self.packets.append(packet)
         item = MessageQListWidgetItem(packet)
-        self.listWidget_msgs.addItem(item)
-        self.listWidget_msgs.setItemWidget(item, item.widget)
+        self.listWidget_messages.addItem(item)
+        self.listWidget_messages.setItemWidget(item, item.widget)
 
     def slot(self, args: dict):
         # if self.work_thread.started
@@ -106,7 +115,41 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         type_ = args.get('type')
         status = args.get('status')
 
+        if type_ == OUT_INFO:
+            # signal 3
+            if status == OTHER_TEST_DELAY:
+                hostname = args.get('hostname')
+                ip_address = args.get('ip_address')
+                recv_time = args.get('recv_time')
+                new_node = Node(label=hostname, ip_address=ip_address, last_seen=recv_time)
+                self.add_node(new_node)
+
+            # signal 7
+            if status == TEST_DELAY:
+                hostname = args.get('hostname')
+                ip_address = args.get('ip_address')
+                recv_time = args.get('recv_time')
+                delay = args.get('delay')
+                new_node = Node(label=hostname, ip_address=ip_address, last_seen=recv_time)
+                self.add_node(new_node)
+                if delay:
+                    self.view_delay(delay)
+
+            # signal 1
+            if status == INIT_ACCEPT_SUCCESS:
+                ip_address = socket.gethostbyname(socket.gethostname())
+                port = args.get('port')
+                self.label_e_address.setText(ip_address)
+                self.label_e_port.setText(f'{port}')
+                self.label_e_status.setText('listening')
+                self.label_e_status.setStyleSheet("color:green;")
+
+            # signal 4
+            if status == RECV_CONNECTION:
+                pass
+
         if type_ == OUT_SEND:
+            # signal 8
             if status == SEND_SUCCESS:
                 content = args.get('content')
                 ip_address = args.get('ip_address')
@@ -122,7 +165,8 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if type_ == OUT_RECV:
-            if status == SEND_SUCCESS:
+            # signal 5
+            if status == RECV_SUCCESS:
                 content = args.get('content')
                 ip_address = args.get('ip_address')
                 flow = args.get('flow')
@@ -137,33 +181,49 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 QMessageBox.warning(self, "warning", f'{content}\n{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
         if type_ == OUT_ERROR:
+            error = args.get('error')
+            QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
             if status in [SEND_ERROR, RECV_ERROR, TEST_DELAY_FAIL]:
-                error = args.get('error')
                 self.label_delay.setText('inf')
                 self.label_status.setText('disconnect')
                 self.label_status.setStyleSheet("color:red;")
-                QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 
-        if type_ == OUT_INFO:
-            if status == TEST_DELAY:
-                delay = args.get('delay')
-                if delay:
-                    self.view_delay(delay)
+            # signal 8
+            if status == TEST_DELAY_FAIL:
+                ip_address = args.get('ip_address')
+                print(f'test {ip_address} {self.lineEdit_address.text()} delay fail')
+                if ip_address == self.lineEdit_address.text():
+                    self.label_delay.setText('inf')
+                    self.label_status.setText('disconnect')
+                    self.label_status.setStyleSheet("color:red;")
+
+            # signal 2 6
+            if status in [ACCEPT_ERROR, RECV_ERROR]:
+                pass
 
     def send(self):
         self.editWidget.extract()
         message = self.editWidget.message
 
-        # tochange
-        address = '127.0.0.1'
+        # todo(多节点处理)
         if self.radioButton_address.isChecked():
-            address = self.lineEdit_address.text()
+            address = extract_address(self.lineEdit_address.text())
+        else:
+            ip = self.lineEdit_c_address.text()
+            port = self.lineEdit_c_port.text()
+            address = extract_address(f'{ip}:{port}')
+        if not address:
+            QMessageBox.warning(self, "warning", f'请输入正确的IP地址',
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            return
+
         protocol = self.comboBox_protocol.currentText()
 
         signal = {
             'type': SIGNAL_SEND,
             'content': message.to_json(),
-            'dest': (address, LISTENING_PORT),
+            'dest': address,
             'protocol': protocol
         }
         print(f'main   --> {message}')

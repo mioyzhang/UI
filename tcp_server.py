@@ -44,7 +44,7 @@ class RecvThread(Thread):
 
                     file_name = info.get('file_name')
                     file_size = info.get('file_size')
-                    file_path = os.path.join(save_path, file_name)
+                    file_path = os.path.join(SAVE_PATH, file_name)
                     print(f'recv {file_name} {file_size} byte')
                     
                     with open(file_path, 'wb') as f:

@@ -62,17 +62,17 @@
        </item>
        <item>
         <property name="text">
-         <string>探测信息</string>
+         <string>Type1</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>指令信息</string>
+         <string>Type2</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>回复信息</string>
+         <string>Type3</string>
         </property>
        </item>
       </widget>
@@ -240,6 +240,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButton_cancel">
+       <property name="text">
+        <string>取消</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButton_generate_msg">
        <property name="text">
         <string>生成</string>
@@ -247,9 +254,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_cancel">
+      <widget class="QPushButton" name="pushButton_clear">
        <property name="text">
-        <string>取消</string>
+        <string>清空</string>
        </property>
       </widget>
      </item>

@@ -11,13 +11,12 @@ from PyQt5.QtWidgets import *
 import resouce_rc
 from ui.editForm import Ui_EditForm
 from ui.viewForm import Ui_ViewForm
-from ui.testWidgets import Ui_Form
+from ui.test import Ui_Form
 
-from tools import generate_random_gps
 from logic import *
 
 
-class NodeQListWidgetItem(QListWidgetItem):
+class NodeQListWidgetItemPast(QListWidgetItem):
     def __init__(self, node):
         super().__init__()
 
@@ -169,7 +168,7 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         self.message = Message(info)
 
     def clear_info(self):
-        self.label_seq.setText('')
+        # self.label_seq.setText('')
         self.comboBox_msg_type.setCurrentIndex(0)
         self.radioButton_gps.setChecked(False)
         self.lineEdit_gps.setText('')
@@ -182,13 +181,13 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         import faker
         faker = faker.Faker()
 
-        imgs = os.listdir(img_path)
+        imgs = os.listdir(IMG_PATH)
         imgs = random.sample(imgs, random.randint(0, len(imgs)))
-        imgs = [os.path.join(img_path, i) for i in imgs]
+        imgs = [os.path.join(IMG_PATH, i) for i in imgs]
 
-        files = os.listdir(file_path)
+        files = os.listdir(FILE_PATH)
         files = random.sample(files, random.randint(0, len(files)))
-        files = [os.path.join(file_path, i) for i in files]
+        files = [os.path.join(FILE_PATH, i) for i in files]
 
         info = {
             # 'sequence': random.randint(0, 10000),
@@ -242,7 +241,7 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
         if images:
             self.scrollArea.show()
             for i in images:
-                img_path = os.path.join(save_path, i)
+                img_path = os.path.join(SAVE_PATH, i)
                 label = QLabel(self.scrollAreaWidgetContents)
                 label.setPixmap(QPixmap(img_path))
                 self.layout.addWidget(label)
@@ -257,13 +256,77 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
         self.display(m)
 
     def show_img(self):
-        imgs = [os.path.join(img_path, i) for i in os.listdir(img_path)]
+        imgs = [os.path.join(IMG_PATH, i) for i in os.listdir(IMG_PATH)]
 
         verticalLayout_images = QVBoxLayout(self.scrollAreaWidgetContents)
         for i in imgs:
             label = QLabel(self.scrollAreaWidgetContents)
             label.setPixmap(QPixmap(i))
             verticalLayout_images.addWidget(label)
+
+
+class NodeQListWidgetItem(QListWidgetItem):
+    def __init__(self, node: Node):
+        super().__init__()
+
+        self.node = node
+        self.widget = 0
+        self.widget = QWidget()
+        self.horizontalLayout = QHBoxLayout(self.widget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.label_icon = QLabel(self.widget)
+        self.label_label = QLabel(self.widget)
+        self.label_ip = QLabel(self.widget)
+        self.label_delay = QLabel(self.widget)
+        self.pushButton_test = QPushButton(self.widget)
+        self.pushButton_send = QPushButton(self.widget)
+
+        self.label_icon.setMaximumSize(QSize(41, 41))
+        self.label_icon.setPixmap(QPixmap(":/icon/icon/node.png"))
+        self.label_icon.setScaledContents(True)
+
+        spacerItem0 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem4 = QSpacerItem(10, 20, QSizePolicy.Preferred, QSizePolicy.Minimum)
+
+        self.horizontalLayout.addWidget(self.label_icon)
+        self.horizontalLayout.addItem(spacerItem0)
+        self.horizontalLayout.addWidget(self.label_label)
+        self.horizontalLayout.addItem(spacerItem1)
+        self.horizontalLayout.addWidget(self.label_ip)
+        self.horizontalLayout.addItem(spacerItem2)
+        self.horizontalLayout.addWidget(self.label_delay)
+        self.horizontalLayout.addItem(spacerItem3)
+        self.horizontalLayout.addWidget(self.pushButton_test)
+        self.horizontalLayout.addWidget(self.pushButton_send)
+        self.horizontalLayout.addItem(spacerItem4)
+
+        self.pushButton_test.setText("测试连接")
+        self.pushButton_send.setText("发送消息")
+        self.label_delay.setText('inf')
+        # self.label_delay.setStyleSheet("color:yellow;")
+
+        self.setSizeHint(self.widget.sizeHint())
+        self.view()
+
+    def view(self):
+        icons = [
+            QPixmap(":/icon/icon/node.png"),
+            QPixmap(":/icon/icon/服务器.png"),
+            QPixmap(":/icon/icon/射手.png"),
+            QPixmap(":/icon/icon/传感器.png"),
+            QPixmap(":/icon/icon/无人机.png"),
+            QPixmap(":/icon/icon/飞机.png"),
+            QPixmap(":/icon/icon/皮卡 (1).png"),
+            QPixmap(":/icon/icon/轮船.png"),
+        ]
+
+        self.label_icon.setPixmap(icons[self.node.type])
+        self.label_label.setText(self.node.label)
+        self.label_ip.setText(self.node.ip_address)
 
 
 class TestWindow(QWidget, Ui_Form):
@@ -273,19 +336,22 @@ class TestWindow(QWidget, Ui_Form):
         self.pushButton.clicked.connect(self.test)
 
     def test(self):
-        # t = T1('33', 'gfsgsgds')
-        # item = MessageQListWidgetItem(t)
-        # self.listWidget.addItem(item)
-        # self.listWidget.setItemWidget(item, item.widget)
+        t = Node(generate=True)
+
+        item = NodeQListWidgetItem(t)
+        item.setSizeHint(QSize(item.sizeHint().width(), 43))
+
+        self.listWidget.addItem(item)
+        self.listWidget.setItemWidget(item, item.widget)
         pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    # w = TestWindow()
+    w = TestWindow()
     # w = MessageEditWidget()
-    w = MessageViewWidget()
+    # w = MessageViewWidget()
     w.show()
 
     app.exec()
