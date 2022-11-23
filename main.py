@@ -45,7 +45,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.editWidget.pushButton_submit.clicked.connect(self.editWidget.extract)
 
         self.pushButton_send.clicked.connect(self.send_message)
-        self.pushButton_test2.clicked.connect(self.p1_test)
+        self.pushButton_p1_test.clicked.connect(self.p1_test)
 
         self.pushButton_p2_test.clicked.connect(self.p2_test)
 
@@ -95,8 +95,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             port = node.port if node.port else LISTENING_PORT
             address = (ip, port)
 
-        print(f'send {message} to {address}')
-
         signal = {
             'type': SIGNAL_SEND,
             'content': message.to_json(),
@@ -134,18 +132,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.statusBar().showMessage(f'Listening on port {port}', 5000)
 
             # signal 3
-            if status == OTHER_TEST_DELAY:
+            # signal 4
+            if status in [OTHER_TEST_DELAY, RECV_CONNECTION]:
                 hostname = args.get('hostname')
                 ip_address = args.get('ip_address')
                 recv_time = args.get('recv_time')
+                print(f'{hostname} {ip_address} {recv_time}')
                 new_node = Node(label=hostname, ip_address=ip_address, last_seen=recv_time)
                 self.add_node(new_node)
 
-            # signal 4
-            if status == RECV_CONNECTION:
-                ip_address, port = args.get('address')
-                print(f'{ip_address}:{port} connect')
-                # todo
+                if status == RECV_CONNECTION:
+                    print(f'{ip_address} try to connect')
 
             if status == OTHER_TEST_DELAY:
                 pass
@@ -186,14 +183,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pass
 
     def p1_test(self):
-
-        message = {
-            'sequence': 'l-232',
-            'content': 'Hello world'
-        }
-        m = Message(args=message)
-        p = Packet(message=m, src='192.168.0.156')
-
+        m = Message(None)
+        p = Packet(message=m, generate=True)
         item = MessageQListWidgetItem(p)
         self.listWidget_messages.addItem(item)
         self.listWidget_messages.setItemWidget(item, item.widget)
@@ -220,6 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def add_packet(self, packet):
         print(f'add {packet}')
         if packet in self.packets:
+            print(f'recv {packet} again')
             return
         self.packets.append(packet)
         item = MessageQListWidgetItem(packet)
@@ -230,12 +222,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget_message.setCurrentIndex(0)
         packet = args[0].packet
         self.viewWidget.display(packet.message)
+        self.display(packet)
 
-        self.label_src.setText(f'{packet.src}')
-        self.label_dst.setText(f'{packet.dst}')
+    def display(self, packet):
+        ip = None
+        self.label_TR.setText(FLOW[packet.flow])
+        if packet.flow == TX:
+            self.label_src.setText('localhost')
+            self.label_dst.setText(f'{packet.dst}')
+            ip = packet.dst
+        elif packet.flow == RX:
+            self.label_src.setText(f'{packet.src}')
+            self.label_dst.setText('localhost')
+            ip = packet.src
+        else:
+            self.label_src.setText(f'{packet.src}')
+            self.label_dst.setText(f'{packet.dst}')
         self.label_protocol.setText(f'{packet.protocol}')
-        self.label_recv_time.setText(f'{packet.time}')
+        self.label_time.setText(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(packet.time)))
         self.label_gps.setText(f'{packet.message.gps}')
+
+        if ip:
+            node = Node(ip_address=ip)
+            if node in self.nodes:
+                node = self.nodes[self.nodes.index(node)]
+                self.label_label.setText(node.label)
+                self.label_address.setText(node.ip_address)
+                self.label_node_type.setText(NODE_TYPE[node.type])
+                last_seen = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(node.last_seen))
+                self.label_last_seen.setText(last_seen)
 
     def node_info_view(self, *args):
         node = args[0].node

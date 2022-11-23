@@ -72,8 +72,8 @@ class Message(object):
             self.sequence = random.randint(0, 10 ** 8 - 1)
             self.type = random.randint(0, 3)
             self.with_gps = random.choice([True, False])
-            self.gps =  generate_random_gps()
-            self.content =  faker.text()
+            self.gps = generate_random_gps()
+            self.content = faker.text()
 
             imgs = os.listdir(IMG_PATH)
             imgs = random.sample(imgs, random.randint(0, len(imgs)))
@@ -124,7 +124,7 @@ class Message(object):
 
 
 class Packet(object):
-    def __init__(self, message, src=None, dst=None, protocol=None, time_=None, send_time=None, flow=None, status=1, generate=False):
+    def __init__(self, message, src=None, dst=None, protocol="TCP", time_=None, flow=-1, status=1, generate=False):
         super().__init__()
         
         self.src = src
@@ -147,8 +147,7 @@ class Packet(object):
                 self.dst = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
 
             self.protocol = protocol
-            self.recv_time = recv_time
-            self.send_time = send_time
+            self.time = time_
             self.status = random.randint(0, 1)
             self.message = message
             self.sequence = self.message.sequence
@@ -159,8 +158,7 @@ class Packet(object):
             'dst': self.dst,
             'protocol': self.protocol,
             'status': self.status,
-            'recv_time': self.recv_time,
-            'send_time': self.send_time,
+            'time': self.time,
             'message': self.message.to_dict()
         }
         return packet_dict

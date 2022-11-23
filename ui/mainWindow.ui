@@ -110,7 +110,7 @@
                    <widget class="QWidget" name="widget_2" native="true">
                     <layout class="QGridLayout" name="gridLayout">
                      <item row="4" column="1">
-                      <widget class="QLabel" name="label_recv_time">
+                      <widget class="QLabel" name="label_time">
                        <property name="text">
                         <string/>
                        </property>
@@ -126,7 +126,7 @@
                      <item row="4" column="0">
                       <widget class="QLabel" name="label_10">
                        <property name="text">
-                        <string>接收时间：</string>
+                        <string>时间：</string>
                        </property>
                       </widget>
                      </item>
@@ -238,7 +238,7 @@
                      <item row="3" column="1">
                       <widget class="QLabel" name="label_last_seen">
                        <property name="text">
-                        <string>None</string>
+                        <string/>
                        </property>
                       </widget>
                      </item>
@@ -259,7 +259,7 @@
                      <item row="0" column="1">
                       <widget class="QLabel" name="label_label">
                        <property name="text">
-                        <string>None</string>
+                        <string/>
                        </property>
                       </widget>
                      </item>
@@ -273,14 +273,14 @@
                      <item row="1" column="1">
                       <widget class="QLabel" name="label_address">
                        <property name="text">
-                        <string>None</string>
+                        <string/>
                        </property>
                       </widget>
                      </item>
                      <item row="2" column="1">
                       <widget class="QLabel" name="label_node_type">
                        <property name="text">
-                        <string>None</string>
+                        <string/>
                        </property>
                       </widget>
                      </item>
@@ -449,9 +449,9 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="pushButton_test2">
+                   <widget class="QPushButton" name="pushButton_p1_test">
                     <property name="text">
-                     <string>test2</string>
+                     <string>test</string>
                     </property>
                    </widget>
                   </item>
@@ -659,7 +659,7 @@
      <x>0</x>
      <y>0</y>
      <width>1270</width>
-     <height>28</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">

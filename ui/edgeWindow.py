@@ -276,7 +276,7 @@ class Ui_EdgeMainWindow(object):
         self.label_2.setText(_translate("EdgeMainWindow", "IP地址："))
         self.label_3.setText(_translate("EdgeMainWindow", "端口号："))
         self.lineEdit_c_address.setText(_translate("EdgeMainWindow", "127.0.0.1"))
-        self.lineEdit_c_port.setText(_translate("EdgeMainWindow", "8900"))
+        self.lineEdit_c_port.setText(_translate("EdgeMainWindow", "8901"))
         self.pushButton_check.setText(_translate("EdgeMainWindow", "测试连接"))
         self.pushButton_set.setText(_translate("EdgeMainWindow", "设置"))
         self.groupBox_3.setTitle(_translate("EdgeMainWindow", "传感器/射手"))

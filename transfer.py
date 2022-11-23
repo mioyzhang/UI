@@ -37,22 +37,26 @@ class TransferThread(QObject):
             protocol = args.get('protocol')
             message = Message(content)
             print(f'send {message} to {address}')
-            self.send_message(message, address)
+            self.send_message(message, address, protocol)
 
-    def send_message(self, message, address):
+    def send_message(self, message, address, protocol='TCP'):
         try:
             self.tcp_port = get_port()
 
             msg = {
                 'type': PACKET_LINK,
-                'protocol': 'TCP',
-                'port': self.tcp_port
+                'protocol': protocol,
+                'port': self.tcp_port,
+                'hostname': HostName,
             }
+            self.udpSender.settimeout(TIMEOUT)
             self.udpSender.sendto(json.dumps(msg).encode(), address)
-
             recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
+            self.udpSender.settimeout(None)
+
             info = json.loads(recvData.decode())
             type_ = info.get('type')
+            print(info)
             if type_ == PACKET_LINK_BACK:
                 print('waiting for connection')
 
@@ -135,10 +139,20 @@ class TransferThread(QObject):
 
     def tcp_transfer_recv(self, address):
         try:
+
             print(f'try to connect to {address[0]}:{address[1]}')
-            client = socket.socket()
-            client.settimeout(5)
-            client.connect(address)
+            for _ in range(10):
+                try:
+                    client = socket.socket()
+                    client.settimeout(5)
+                    client.connect(address)
+                except ConnectionError:
+                    time.sleep(0.5)
+                else:
+                    break
+            else:
+                raise ConnectionError(f'can not connect to {address}')
+
             print('start recv messages')
             content = client.recv(BUFFER_SIZE).decode()
 
@@ -146,7 +160,16 @@ class TransferThread(QObject):
             client.send(json.dumps(back).encode())
 
             info = json.loads(content)
+            sequence = info.get('sequence')
             files = info.get('files') + info.get('images')
+
+            save_path = os.path.join(SAVE_PATH, f'{sequence}')
+            if not os.path.exists(save_path):
+                os.makedirs(save_path)
+
+            info['files'] = [os.path.join(save_path, i) for i in info.get('files')]
+            info['images'] = [os.path.join(save_path, i) for i in info.get('images')]
+
             print(f'recv {info}')
             for _ in files:
                 content = client.recv(BUFFER_SIZE).decode()
@@ -158,11 +181,10 @@ class TransferThread(QObject):
                 type_ = file_info.get('type')
                 if type_ not in [PACKET_FILE, PACKET_IMG]:
                     print('type_ not in [PACKET_FILE, PACKET_IMG]')
-                    pass
                 file_name = file_info.get('file_name')
                 file_size = file_info.get('file_size')
 
-                file_path = os.path.join(SAVE_PATH, file_name)
+                file_path = os.path.join(save_path, file_name)
                 with open(file_path, 'wb') as f:
                     for i in range(ceil(file_size / BUFFER_SIZE)):
                         bytes_read = client.recv(BUFFER_SIZE)
@@ -270,6 +292,9 @@ class TransferThread(QObject):
             self.trigger_out.emit(signal)
             print(e)
 
+        finally:
+            self.udpReceiver.close()
+
     def process(self, info, addr):
         type_ = info.get('type')
         if type_ == PACKET_TEST:
@@ -304,8 +329,11 @@ class TransferThread(QObject):
             # signal 4
             signal = {
                 'type': OUT_INFO,
-                'status': RECV_CONNECTION,  # ?
-                'address': (ip, port)
+                'status': RECV_CONNECTION,
+                'hostname': info.get('hostname'),
+                'ip_address': ip,
+                'port': port,
+                'recv_time': time.time(),
             }
             self.trigger_out.emit(signal)
 

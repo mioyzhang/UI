@@ -1,6 +1,7 @@
 import random
 import math
 import socket
+import traceback
 
 # signal type
 SIGNAL_TEST = 0
@@ -37,14 +38,21 @@ PACKET_LINK_BACK = 12
 
 PACKET_UNSENT = -1
 PACKET_NONE = 0
-PACKET_DETECT = 1
-PACKET_ORDER = 2
-PACKET_REPLY = 3
+PACKET_1 = 1
+PACKET_2 = 2
+PACKET_3 = 3
 
 PACKET_BACK = 4
 PACKET_FILE = 5
 PACKET_IMG = 6
 PACKET_TOOL = 7
+
+MESSAGE_TYPE = [
+    'NodeType',
+    "Type 1",
+    "Type 2",
+    "Type 3",
+]
 
 # node type
 NODE_NONE = 0
@@ -70,6 +78,8 @@ NODE_TYPE = [
 
 RX = 0
 TX = 1
+FLOW = ['RX', 'TX', 'None']
+
 TIMEOUT = 5
 
 LISTENING_PORT = 8900
@@ -78,13 +88,13 @@ LISTENING_PORT_1 = 8901
 BUFFER_SIZE = 2048 * 10
 
 
-IMG_PATH = '/home/dell/workspace/UI/resource/icon'
-FILE_PATH = '/home/dell/workspace/UI/resource/file'
-SAVE_PATH = '/home/dell/workspace/UI/resource/tmp'
+# IMG_PATH = '/home/dell/workspace/UI/resource/icon'
+# FILE_PATH = '/home/dell/workspace/UI/resource/file'
+# SAVE_PATH = '/home/dell/workspace/UI/resource/tmp'
 
-# IMG_PATH = 'D:/Develop/PycharmProjects/UI/resource/icon'
-# FILE_PATH = 'D:/Develop/PycharmProjects/UI/resource/file'
-# SAVE_PATH = 'D:/Develop/PycharmProjects/UI/resource/tmp'
+IMG_PATH = 'D:/Develop/PycharmProjects/UI/resource/icon'
+FILE_PATH = 'D:/Develop/PycharmProjects/UI/resource/file'
+SAVE_PATH = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
 # socket.setdefaulttimeout(TIMEOUT)
@@ -141,3 +151,13 @@ def extract_address(s, default_port=LISTENING_PORT):
             return s, default_port
         else:
             return False
+
+
+def test(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except BaseException as e:
+            print(e)
+            traceback.print_exc()
+    return wrapper

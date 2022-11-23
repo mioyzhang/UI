@@ -128,7 +128,7 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
     def display(self, message):
         self.clear()
         self.label_seq.setText(f'{message.sequence}')
-        self.label_type.setText(f'{message.type}')
+        self.label_type.setText(MESSAGE_TYPE[message.type])
         self.label_gps.setText(f'{message.gps}')
         self.textBrowser.setPlainText(f'{message.content}')
         images = message.images
@@ -139,24 +139,6 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
                 label = QLabel(self.scrollAreaWidgetContents)
                 label.setPixmap(QPixmap(img_path))
                 self.layout.addWidget(label)
-
-    def test(self):
-        message = {
-            'sequence': 'l-232',
-            'content': 'Hello world'
-        }
-        m = Message(args=message)
-        p = Packet(message=m, src='192.168.0.156')
-        self.display(m)
-
-    def show_img(self):
-        imgs = [os.path.join(IMG_PATH, i) for i in os.listdir(IMG_PATH)]
-
-        verticalLayout_images = QVBoxLayout(self.scrollAreaWidgetContents)
-        for i in imgs:
-            label = QLabel(self.scrollAreaWidgetContents)
-            label.setPixmap(QPixmap(i))
-            verticalLayout_images.addWidget(label)
 
 
 class NodeQListWidgetItem(QListWidgetItem):
@@ -309,9 +291,9 @@ class TestWindow(QWidget, Ui_Form):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    w = TestWindow()
+    # w = TestWindow()
     # w = MessageEditWidget()
-    # w = MessageViewWidget()
+    w = MessageViewWidget()
     w.show()
 
     app.exec()

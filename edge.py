@@ -132,7 +132,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 delay = args.get('delay')
                 new_node = Node(label=hostname, ip_address=ip_address, last_seen=recv_time)
                 self.add_node(new_node)
-                if delay:
+                if delay is not None:
                     self.view_delay(delay)
 
             # signal 1
@@ -231,24 +231,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
         self.sequence += 1
 
     def test(self):
-        self.editWidget.extract()
-        message = self.editWidget.message
-
-        # tochange
-        address = '127.0.0.1'
-        if self.radioButton_address.isChecked():
-            address = self.lineEdit_address.text()
-        protocol = self.comboBox_protocol.currentText()
-
-        signal = {
-            'type': SIGNAL_SEND,
-            'content': message.to_json(),
-            'dest': (address, LISTENING_PORT_1),
-            'protocol': protocol
-        }
-        print(f'main   --> {message}')
-        self.send_thread.trigger_in.emit(signal)
-        self.sequence += 1
+        pass
 
 
 if __name__ == '__main__':
