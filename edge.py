@@ -156,7 +156,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 flow = args.get('flow')
                 send_time = args.get('send_time')
                 message = Message(content)
-                packet = Packet(message=message, dst=ip_address, flow=flow, send_time=send_time)
+                packet = Packet(message=message, dst=ip_address, flow=flow, time_=send_time)
                 self.add_packet(packet)
             
             else:
@@ -172,7 +172,7 @@ class EdgeMainWindow(QMainWindow, Ui_EdgeMainWindow):
                 flow = args.get('flow')
                 recv_time = args.get('recv_time')
                 message = Message(content)
-                packet = Packet(message=message, src=ip_address, flow=flow, recv_time=recv_time)
+                packet = Packet(message=message, src=ip_address, flow=flow, time_=recv_time)
                 self.add_packet(packet)
 
             else:

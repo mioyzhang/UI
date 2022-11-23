@@ -112,9 +112,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         status = args.get('status')
 
         if type_ == OUT_ERROR:
-            # signal 2
             error = args.get('error')
             QMessageBox.warning(self, "warning", f'{error}', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
+            # signal 2
+            if status == ACCEPT_ERROR:
+                pass
+
+            # signal 6
+            if status == RECV_ERROR:
+                pass
+
+            # signal 8
+            if status == TEST_DELAY_FAIL:
+                pass
 
         if type_ == OUT_INFO:
             # signal 1
@@ -131,30 +142,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.add_node(new_node)
 
             # signal 4
+            if status == RECV_CONNECTION:
+                ip_address, port = args.get('address')
+                print(f'{ip_address}:{port} connect')
+                # todo
+
             if status == OTHER_TEST_DELAY:
                 pass
 
-            if status == RECV_CONNECTION:
-                ip_address = args.get('ip_address')
-                port = args.get('port')
-                print(f'{ip_address}:{port} connect')
-
+            # signal 7
             if status == TEST_DELAY:
-                label = args.get('hostname') if args.get('hostname') else args.get('ip_address')
+                label = args.get('hostname')
                 ip_address = args.get('ip_address')
-                port = args.get('port')
+                delay = args.get('delay')
+                recv_time = args.get('recv_time')
+                
+                # todo
                 node = Node(label=label, ip_address=ip_address, port=port)
                 self.add_node(node)
 
         if type_ == OUT_RECV:
-            ip_address = args.get('ip_address')
-            content = args.get('content')
-            recv_time = args.get('recv_time')
-            flow = args.get('flow')
+            # signal 5
+            if status == RECV_SUCCESS:
+                ip_address = args.get('ip_address')
+                content = args.get('content')
+                recv_time = args.get('recv_time')
+                flow = args.get('flow')
 
-            message = Message(content)
-            packet = Packet(src=ip_address, message=message, recv_time=recv_time)
-            self.add_packet(packet)
+                message = Message(content)
+                packet = Packet(src=ip_address, flow=flow, message=message, time_=recv_time)
+                self.add_packet(packet)
 
         if type_ == OUT_SEND:
             if status == SEND_SUCCESS:
@@ -163,7 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 flow = args.get('flow')
                 send_time = args.get('send_time')
                 message = Message(content)
-                packet = Packet(message=message, dst=ip_address, flow=flow, send_time=send_time)
+                packet = Packet(message=message, dst=ip_address, flow=flow, time_=send_time)
                 self.add_packet(packet)
 
         pass
@@ -217,7 +234,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_src.setText(f'{packet.src}')
         self.label_dst.setText(f'{packet.dst}')
         self.label_protocol.setText(f'{packet.protocol}')
-        self.label_recv_time.setText(f'{packet.recv_time}')
+        self.label_recv_time.setText(f'{packet.time}')
         self.label_gps.setText(f'{packet.message.gps}')
 
     def node_info_view(self, *args):

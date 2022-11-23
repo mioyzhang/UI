@@ -32,7 +32,7 @@
      <item>
       <widget class="QLabel" name="label_seq">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -56,7 +56,7 @@
      <item>
       <widget class="QLabel" name="label_type">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -80,7 +80,7 @@
      <item>
       <widget class="QLabel" name="label_gps">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -111,7 +111,7 @@
         <x>0</x>
         <y>0</y>
         <width>758</width>
-        <height>232</height>
+        <height>209</height>
        </rect>
       </property>
      </widget>
@@ -131,20 +131,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_test1">
-       <property name="text">
-        <string>test1</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButton_test2">
-       <property name="text">
-        <string>test2</string>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton_cancel">

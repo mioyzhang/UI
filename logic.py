@@ -104,8 +104,8 @@ class Message(object):
     def to_json(self, with_path=True):
         return json.dumps(self.to_dict(with_path), ensure_ascii=False)
 
-    def summary(self):
-        return self.content[:20] if len(self.content) > 20 else self.content
+    def summary(self, length=30):
+        return self.content[:length] if len(self.content) > length else self.content
 
     def detail(self):
         return json.dumps(self.to_dict(), indent=4, ensure_ascii=False)
@@ -124,28 +124,27 @@ class Message(object):
 
 
 class Packet(object):
-    def __init__(self, message, src=None, dst=None, protocol=None, recv_time=None, send_time=None, flow=None, generate=False):
+    def __init__(self, message, src=None, dst=None, protocol=None, time_=None, send_time=None, flow=None, status=1, generate=False):
         super().__init__()
         
         self.src = src
         self.dst = dst
         self.protocol = protocol
-        self.recv_time = recv_time
-        self.send_time = send_time
+        self.time = time_
         self.flow = flow
-        self.status = 1
+        self.status = status
 
         self.message = message
         self.sequence = self.message.sequence
 
         if generate:
-            self.flow = random.randint(0, 2)
+            self.flow = random.randint(0, 1)
             if self.flow == RX:
                 self.src = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
                 self.dst = None
             if self.flow == TX:
                 self.src = None
-                self.ds = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
+                self.dst = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
 
             self.protocol = protocol
             self.recv_time = recv_time

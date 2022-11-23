@@ -76,6 +76,7 @@ class TransferThread(QObject):
             server.bind(('0.0.0.0', port))
             print(f'tcp waiting on port {port}')
             server.listen(5)
+            server.settimeout(TIMEOUT)
             client, address = server.accept()
 
             print('start send messages')
@@ -88,7 +89,7 @@ class TransferThread(QObject):
                 self.send_file(i, client, address)
             
             print(f'send {message} success')
-            # signal 8
+            # signal 9
             signal = {
                 'type': OUT_SEND,
                 'status': SEND_SUCCESS,
@@ -99,7 +100,7 @@ class TransferThread(QObject):
             }
             self.trigger_out.emit(signal)
         except BaseException as e:
-            # signal
+            # signal 10
             signal = {
                 'type': OUT_ERROR,
                 'status': SEND_ERROR,
@@ -107,7 +108,6 @@ class TransferThread(QObject):
                 'error': e,
             }
             self.trigger_out.emit(signal)
-            raise e
         finally:
             server.close()
             
@@ -137,6 +137,7 @@ class TransferThread(QObject):
         try:
             print(f'try to connect to {address[0]}:{address[1]}')
             client = socket.socket()
+            client.settimeout(5)
             client.connect(address)
             print('start recv messages')
             content = client.recv(BUFFER_SIZE).decode()
@@ -205,6 +206,7 @@ class TransferThread(QObject):
             self.udpSender.sendto(message.encode(), address)
             self.udpSender.settimeout(TIMEOUT)
             recvData, addr = self.udpSender.recvfrom(BUFFER_SIZE)
+            recv_time = time.time()
 
             back = json.loads(recvData.decode())
             type_ = back.get('type')
@@ -220,6 +222,7 @@ class TransferThread(QObject):
                     'hostname': hostname,
                     'address': address,
                     'delay': delay,
+                    'recv_time': recv_time
                 }
                 print(f'connect to {addr} delay {delay}s')
                 self.trigger_out.emit(back)
@@ -294,6 +297,7 @@ class TransferThread(QObject):
             self.udpSender.sendto(json.dumps(message).encode(), addr)
 
             ip, port = addr[0], info.get('port')
+            print(f'wait recv from {ip}:{port}')
             thread = Thread(target=self.tcp_transfer_recv, args=((ip, port), ))
             thread.start()
 

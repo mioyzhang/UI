@@ -114,8 +114,8 @@ class MessageViewWidget(QWidget, Ui_ViewForm):
         self.scrollArea.hide()
         # self.show_img()
         self.layout = QVBoxLayout(self.scrollAreaWidgetContents)
-        self.pushButton_test1.clicked.connect(self.test)
-        self.pushButton_test2.clicked.connect(self.clear)
+        # self.pushButton_test1.clicked.connect(self.test)
+        # self.pushButton_test2.clicked.connect(self.clear)
 
     def clear(self):
         self.label_seq.clear()
@@ -239,7 +239,8 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.label_label = QLabel(self.widget)
         self.label_content = QLabel(self.widget)
 
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        spacerItem0 = QSpacerItem(120, 20, QSizePolicy.Preferred, QSizePolicy.Minimum)
+        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.label_icon_img = QLabel(self.widget)
         self.label_icon_img.setMaximumSize(QSize(15, 15))
         self.label_icon_img.setPixmap(QPixmap(":/icon/icon/图像.png"))
@@ -252,9 +253,10 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.label_icon_file.setScaledContents(True)
 
         self.horizontalLayout_other = QHBoxLayout()
-        self.horizontalLayout_other.addItem(spacerItem)
+        self.horizontalLayout_other.addItem(spacerItem0)
         self.horizontalLayout_other.addWidget(self.label_icon_img)
         self.horizontalLayout_other.addWidget(self.label_icon_file)
+        self.horizontalLayout_other.addItem(spacerItem1)
 
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.addWidget(self.label_label)
@@ -268,20 +270,17 @@ class MessageQListWidgetItem(QListWidgetItem):
         self.view()
 
     def view(self):
-        icons = [
-            QPixmap(":/icon/icon/node.png"),
-            QPixmap(":/icon/icon/服务器.png"),
-            QPixmap(":/icon/icon/射手.png"),
-            QPixmap(":/icon/icon/传感器.png"),
-            QPixmap(":/icon/icon/无人机.png"),
-            QPixmap(":/icon/icon/飞机.png"),
-            QPixmap(":/icon/icon/皮卡 (1).png"),
-            QPixmap(":/icon/icon/轮船.png"),
-        ]
-
-        # self.label_icon.setPixmap(icons[self.node.type])
-        # self.label_label.setText(self.node.label)
-        # self.label_ip.setText(self.node.ip_address)
+        # todo
+        # self.widget.setStyleSheet("border: 1px solid black;")
+        if self.packet.flow == TX:
+            self.label_label.setText(f'localhost --> {self.packet.dst}')
+            self.widget.setStyleSheet('''QWidget{border-radius:7px;background-color:#66ccff;}''')
+        elif self.packet.flow == RX:
+            self.label_label.setText(f'localhost <-- {self.packet.src}')
+            self.widget.setStyleSheet('''QWidget{border-radius:7px;background-color:#66FFCC;}''')
+        else:
+            self.label_label.setText(f'{self.packet.src} --> {self.packet.dst}')
+            self.widget.setStyleSheet('''QWidget{border-radius:7px;background-color:red;}''')
         self.label_content.setText(self.packet.message.summary())
 
 
@@ -298,10 +297,10 @@ class TestWindow(QWidget, Ui_Form):
         # self.listWidget.addItem(item)
         # self.listWidget.setItemWidget(item, item.widget)
 
-        t = Message()
-        p = Packet(message=t)
-        item = MessageQListWidgetItem(t)
-        item.setSizeHint(QSize(item.sizeHint().width(), 43))
+        t = Message(None)
+        p = Packet(message=t, generate=True)
+        item = MessageQListWidgetItem(p)
+        item.setSizeHint(QSize(item.sizeHint().width(), 52))
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, item.widget)
         pass
