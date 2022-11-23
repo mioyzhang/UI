@@ -4,6 +4,9 @@ import string
 import random
 import time
 
+import faker
+faker = faker.Faker()
+
 from tools import *
 
 
@@ -55,19 +58,34 @@ class Node(object):
 class Message(object):
     def __init__(self, args):
         super(Message, self).__init__()
-        if type(args) not in (str, dict):
-            raise TypeError
-        if isinstance(args, str):
-            args = json.loads(args)
+        if type(args) in (str, dict):
+            if isinstance(args, str):
+                args = json.loads(args)
+            self.sequence = args.get('sequence')
+            self.type = args.get('type')
+            self.with_gps = args.get('with_gps')
+            self.gps = args.get('gps')
+            self.content = args.get('content')
+            self.files = args.get('files') if args.get('files') else []
+            self.images = args.get('images') if args.get('images') else []
+        else:
+            self.sequence = random.randint(0, 10 ** 8 - 1)
+            self.type = random.randint(0, 3)
+            self.with_gps = random.choice([True, False])
+            self.gps =  generate_random_gps()
+            self.content =  faker.text()
 
-        self.sequence = args.get('sequence')
-        self.type = args.get('type')
-        self.with_gps = args.get('with_gps')
-        self.gps = args.get('gps')
-        self.content = args.get('content')
-        self.files = args.get('files') if args.get('files') else []
-        self.images = args.get('images') if args.get('images') else []
-    
+            imgs = os.listdir(IMG_PATH)
+            imgs = random.sample(imgs, random.randint(0, len(imgs)))
+            imgs = [os.path.join(IMG_PATH, i) for i in imgs]
+
+            files = os.listdir(FILE_PATH)
+            files = random.sample(files, random.randint(0, len(files)))
+            files = [os.path.join(FILE_PATH, i) for i in files]
+
+            self.files = files
+            self.images = imgs
+
     def to_dict(self, with_path=True):
         files = self.files if with_path else [os.path.basename(i) for i in self.files]
         images = self.images if with_path else [os.path.basename(i) for i in self.images]
@@ -106,7 +124,7 @@ class Message(object):
 
 
 class Packet(object):
-    def __init__(self, message, src=None, dst=None, protocol=None, recv_time=None, send_time=None, flow=None):
+    def __init__(self, message, src=None, dst=None, protocol=None, recv_time=None, send_time=None, flow=None, generate=False):
         super().__init__()
         
         self.src = src
@@ -115,10 +133,26 @@ class Packet(object):
         self.recv_time = recv_time
         self.send_time = send_time
         self.flow = flow
-        self.status = PACKET_UNSENT
+        self.status = 1
 
         self.message = message
         self.sequence = self.message.sequence
+
+        if generate:
+            self.flow = random.randint(0, 2)
+            if self.flow == RX:
+                self.src = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
+                self.dst = None
+            if self.flow == TX:
+                self.src = None
+                self.ds = '.'.join([str(random.randint(1, 254)) for _ in range(4)])
+
+            self.protocol = protocol
+            self.recv_time = recv_time
+            self.send_time = send_time
+            self.status = random.randint(0, 1)
+            self.message = message
+            self.sequence = self.message.sequence
 
     def to_dict(self):
         packet_dict = {
@@ -156,14 +190,7 @@ if __name__ == '__main__':
     #
     # p = Packet(m)
     # print(p)
-    # print([p])
-    a = Node(ip_address='10.0.0.1', port=123)
-    b = Node(ip_address='10.0.0.1', port=124)
-    print(a)
-    print(b)
-    print(a == b)
-    # print(hash(a))
-    # print(hash(b))
-    print(a in [a, b])
-    print(a in [b])
-    print(Node(ip_address='10.0.0.1', port=123) in [a, b])
+    for _ in range(10):
+        print(Message(None))
+    
+    print(Message(None).detail())

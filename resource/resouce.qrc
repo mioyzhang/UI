@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icon">
+    <file>icon/图像.png</file>
+    <file>icon/文件.png</file>
     <file>icon/node.png</file>
     <file>icon/cat.png</file>
     <file>icon/传感器.png</file>

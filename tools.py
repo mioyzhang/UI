@@ -78,13 +78,13 @@ LISTENING_PORT_1 = 8901
 BUFFER_SIZE = 2048 * 10
 
 
-# img_path = '/home/dell/workspace/UI/resource/icon'
-# file_path = '/home/dell/workspace/UI/resource/file'
-# save_path = '/home/dell/workspace/UI/resource/tmp'
+IMG_PATH = '/home/dell/workspace/UI/resource/icon'
+FILE_PATH = '/home/dell/workspace/UI/resource/file'
+SAVE_PATH = '/home/dell/workspace/UI/resource/tmp'
 
-IMG_PATH = 'D:/Develop/PycharmProjects/UI/resource/icon'
-FILE_PATH = 'D:/Develop/PycharmProjects/UI/resource/file'
-SAVE_PATH = 'D:/Develop/PycharmProjects/UI/resource/tmp'
+# IMG_PATH = 'D:/Develop/PycharmProjects/UI/resource/icon'
+# FILE_PATH = 'D:/Develop/PycharmProjects/UI/resource/file'
+# SAVE_PATH = 'D:/Develop/PycharmProjects/UI/resource/tmp'
 
 HostName = socket.gethostname()
 # socket.setdefaulttimeout(TIMEOUT)
