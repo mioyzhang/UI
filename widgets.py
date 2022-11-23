@@ -16,98 +16,6 @@ from ui.test import Ui_Form
 from logic import *
 
 
-class NodeQListWidgetItemPast(QListWidgetItem):
-    def __init__(self, node):
-        super().__init__()
-
-        self.node = node
-        
-        self.widget = QWidget()
-        self.horizontalLayout_2 = QHBoxLayout(self.widget)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-
-        self.label = QLabel(self.widget)
-        self.label.setMaximumSize(QSize(41, 41))
-        self.label.setText("")
-        self.label.setPixmap(QPixmap(":/icon/icon/cat.png"))
-        self.label.setScaledContents(True)
-        self.label.setObjectName("label")
-        self.horizontalLayout_2.addWidget(self.label)
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.label_2 = QLabel(self.widget)
-        self.label_2.setObjectName("label_2")
-        self.horizontalLayout_2.addWidget(self.label_2)
-        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem1)
-        self.label_3 = QLabel(self.widget)
-        self.label_3.setObjectName("label_3")
-        self.horizontalLayout_2.addWidget(self.label_3)
-        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem2)
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButton = QPushButton(self.widget)
-        self.pushButton.setObjectName("pushButton")
-        self.horizontalLayout.addWidget(self.pushButton)
-        self.pushButton_2 = QPushButton(self.widget)
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.horizontalLayout.addWidget(self.pushButton_2)
-        self.horizontalLayout_2.addLayout(self.horizontalLayout)
-        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Maximum, QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem3)
-
-        self.label_2.setText(self.node.label)
-        self.label_3.setText(f'{self.node.ip_address}:{self.node.port}')
-        self.pushButton.setText("测试连接")
-        self.pushButton_2.setText("发送消息")
-
-        self.setSizeHint(self.widget.sizeHint())
-
-
-class MessageQListWidgetItem(QListWidgetItem):
-    def __init__(self, packet):
-        super().__init__()
-        self.packet = packet
-        self.init_ui()
-    
-    def init_ui(self):
-        self.widget = QWidget()
-        self.horizontalLayout = QHBoxLayout(self.widget)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-
-        self.label_1 = QLabel(self.widget)
-        self.label_1.setMaximumSize(QSize(41, 41))
-        self.label_1.setPixmap(QPixmap(":/icon/icon/无人机.png"))
-        self.label_1.setScaledContents(True)
-
-        spacerItem1 = QSpacerItem(10, 20, QSizePolicy.Maximum, QSizePolicy.Minimum)
-        spacerItem2 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        spacerItem3 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        spacerItem4 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.label_2 = QLabel(self.widget)
-        self.label_3 = QLabel(self.widget)
-
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.addItem(spacerItem2)
-        self.verticalLayout.addWidget(self.label_2)
-        self.verticalLayout.addItem(spacerItem3)
-        self.verticalLayout.addWidget(self.label_3)
-        self.verticalLayout.addItem(spacerItem4)
-
-        self.horizontalLayout.addWidget(self.label_1)
-        self.horizontalLayout.addItem(spacerItem1)
-        self.horizontalLayout.addLayout(self.verticalLayout)
-
-        # self.label_2.setText(f'{self.packet.src}')
-        self.label_2.setText(f'{self.packet.dst}')
-        self.label_3.setText(self.packet.message.summary())
-
-        # self.widget.setMaximumHeight(81)
-        self.setSizeHint(self.widget.sizeHint())
-
-
 class MessageEditWidget(QWidget, Ui_EditForm): 
     def __init__(self, *args) -> None:
         super().__init__(*args)
@@ -122,8 +30,10 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         self.pushButton_position.clicked.connect(self.generate_random_gps)
         self.pushButton_generate.clicked.connect(self.generate_random_gps)
 
-        self.pushButton_submit.clicked.connect(self.extract)
-        # self.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        # self.pushButton_cancel.clicked.connect()
+        self.pushButton_clear.clicked.connect(self.clear_info)
+        self.pushButton_generate_msg.clicked.connect(self.generate_msg)
+        # self.pushButton_submit.clicked.connect(self.extract)
 
         self.toolButton_file.clicked.connect(self.choose_file)
         self.toolButton_img.clicked.connect(self.choose_image)
@@ -175,42 +85,26 @@ class MessageEditWidget(QWidget, Ui_EditForm):
         self.textEdit.setPlainText(''),
         self.listWidget_files.clear()
         self.listWidget_images.clear()
+    
+    def display_message(self, message: Message):
+
+        self.label_seq.setText(f"{message.sequence}")
+        self.comboBox_msg_type.setCurrentIndex(message.type)
+        self.radioButton_gps.setChecked(message.with_gps)
+        self.lineEdit_gps.setText(f'{message.gps}')
+        self.textEdit.setPlainText(message.content),
+        self.listWidget_files.addItems(message.files)
+        self.listWidget_images.addItems(message.images)
+
+        if message.files:
+            self.listWidget_files.show()
+        if message.images:
+            self.listWidget_images.show()
 
     def generate_msg(self):
         self.clear_info()
-        import faker
-        faker = faker.Faker()
-
-        imgs = os.listdir(IMG_PATH)
-        imgs = random.sample(imgs, random.randint(0, len(imgs)))
-        imgs = [os.path.join(IMG_PATH, i) for i in imgs]
-
-        files = os.listdir(FILE_PATH)
-        files = random.sample(files, random.randint(0, len(files)))
-        files = [os.path.join(FILE_PATH, i) for i in files]
-
-        info = {
-            # 'sequence': random.randint(0, 10000),
-            'type': random.randint(0, 3),
-            'with_gps': random.choice([True, False]),
-            'gps': generate_random_gps(),
-            'content': faker.text(),
-            'files': files,
-            'images': imgs
-        }
-
-        # self.label_seq.setText(f"{info.get('sequence')}")
-        self.comboBox_msg_type.setCurrentIndex(info.get('type'))
-        self.radioButton_gps.setChecked(info.get('with_gps'))
-        self.lineEdit_gps.setText(f"{info.get('gps')}")
-        self.textEdit.setPlainText(info.get('content')),
-        self.listWidget_files.addItems(info.get('files'))
-        self.listWidget_images.addItems(info.get('images'))
-
-        if info.get('files'):
-            self.listWidget_files.show()
-        if info.get('images'):
-            self.listWidget_images.show()
+        message = Message(None)
+        self.display_message(message)
 
 
 class MessageViewWidget(QWidget, Ui_ViewForm):
@@ -270,7 +164,6 @@ class NodeQListWidgetItem(QListWidgetItem):
         super().__init__()
 
         self.node = node
-        self.widget = 0
         self.widget = QWidget()
         self.horizontalLayout = QHBoxLayout(self.widget)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -329,6 +222,69 @@ class NodeQListWidgetItem(QListWidgetItem):
         self.label_ip.setText(self.node.ip_address)
 
 
+class MessageQListWidgetItem(QListWidgetItem):
+    def __init__(self, packet: Packet):
+        super().__init__()
+        self.packet = packet
+
+        self.widget = QWidget()
+        self.horizontalLayout = QHBoxLayout(self.widget)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.label_icon = QLabel(self.widget)
+        self.label_icon.setMaximumSize(QSize(41, 41))
+        self.label_icon.setPixmap(QPixmap(":/icon/icon/node.png"))
+        self.label_icon.setScaledContents(True)
+        
+        self.label_label = QLabel(self.widget)
+        self.label_content = QLabel(self.widget)
+
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.label_icon_img = QLabel(self.widget)
+        self.label_icon_img.setMaximumSize(QSize(15, 15))
+        self.label_icon_img.setPixmap(QPixmap(":/icon/icon/图像.png"))
+        self.label_icon_img.setScaledContents(True)
+
+        self.label_icon.setMaximumSize(QSize(41, 41))
+        self.label_icon_file = QLabel(self.widget)
+        self.label_icon_file.setMaximumSize(QSize(15, 15))
+        self.label_icon_file.setPixmap(QPixmap(":/icon/icon/文件.png"))
+        self.label_icon_file.setScaledContents(True)
+
+        self.horizontalLayout_other = QHBoxLayout()
+        self.horizontalLayout_other.addItem(spacerItem)
+        self.horizontalLayout_other.addWidget(self.label_icon_img)
+        self.horizontalLayout_other.addWidget(self.label_icon_file)
+
+        self.verticalLayout = QVBoxLayout()
+        self.verticalLayout.addWidget(self.label_label)
+        self.verticalLayout.addWidget(self.label_content)
+        self.verticalLayout.addLayout(self.horizontalLayout_other)
+
+        self.horizontalLayout.addWidget(self.label_icon)
+        self.horizontalLayout.addLayout(self.verticalLayout)
+
+        self.setSizeHint(self.widget.sizeHint())
+        self.view()
+
+    def view(self):
+        icons = [
+            QPixmap(":/icon/icon/node.png"),
+            QPixmap(":/icon/icon/服务器.png"),
+            QPixmap(":/icon/icon/射手.png"),
+            QPixmap(":/icon/icon/传感器.png"),
+            QPixmap(":/icon/icon/无人机.png"),
+            QPixmap(":/icon/icon/飞机.png"),
+            QPixmap(":/icon/icon/皮卡 (1).png"),
+            QPixmap(":/icon/icon/轮船.png"),
+        ]
+
+        # self.label_icon.setPixmap(icons[self.node.type])
+        # self.label_label.setText(self.node.label)
+        # self.label_ip.setText(self.node.ip_address)
+        self.label_content.setText(self.packet.message.summary())
+
+
 class TestWindow(QWidget, Ui_Form):
     def __init__(self):
         super().__init__()
@@ -336,11 +292,16 @@ class TestWindow(QWidget, Ui_Form):
         self.pushButton.clicked.connect(self.test)
 
     def test(self):
-        t = Node(generate=True)
+        # t = Node(generate=True)
+        # item = NodeQListWidgetItem(t)
+        # item.setSizeHint(QSize(item.sizeHint().width(), 43))
+        # self.listWidget.addItem(item)
+        # self.listWidget.setItemWidget(item, item.widget)
 
-        item = NodeQListWidgetItem(t)
+        t = Message()
+        p = Packet(message=t)
+        item = MessageQListWidgetItem(t)
         item.setSizeHint(QSize(item.sizeHint().width(), 43))
-
         self.listWidget.addItem(item)
         self.listWidget.setItemWidget(item, item.widget)
         pass
